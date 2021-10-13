@@ -2,6 +2,8 @@ import discord
 from discordTogether import DiscordTogether
 from discord.ext import commands
 import json
+import random
+from asyncio.exceptions import TimeoutError as ast
 
 with open("./config.json","r",encoding="utf-8") as f:
     config = json.load(f)
@@ -83,8 +85,96 @@ class game(commands.Cog):
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "doodle-crew")
         await ctx.reply(f"`{ctx.author}` ได้สร้างกิจกรรม **Doodle Crew** แล้วค่ะ!\n{link}")
 
+    @commands.command()
+    async def hangman(self, ctx):
+        word = random.choice(words)
+        all_char = list(word)
+        message = await ctx.reply(embed=discord.Embed(
+            title=gen_display(word, all_char),
+            description=f"จำนวนครั้งผิด `{0}`",
+            color=0x00ffff
+        ).set_author(
+            name="Hangman Game",
+            icon_url=self.client.user.avatar_url,
+            url=config["author_url"]
+        ))
+        try:
+            _input = await self.client.wait_for('message', timeout=30)
+            await play(self, message, _input, all_char, word)
+        except ast:
+            await message.delete()
+            return await message.edit(embed=discord.Embed(
+                title="หมดเวลาแล้วค่ะ\n" + gen_display(word, all_char),
+                description=f"จำนวนครั้งผิด `{0}`",
+                color=0x00ffff
+            ).set_author(
+                name="Hangman Game",
+                icon_url=self.client.user.avatar_url,
+                url=config["author_url"]
+            ))
+
 def setup(client):
     client.add_cog(game(client))
+
+words = [
+    "tennis",
+    "football",
+    "badminton"
+]
+
+async def play(self, message, _input, all_char, word, cor_count=0, incor_count=0):
+    if _input.content in all_char:
+        cor_count += 1
+        for n, i in enumerate(all_char):
+            if i == _input.content :
+                all_char[n] = "` `"
+                break
+        await _input.delete()
+        if cor_count == len(all_char) - 2: return await message.edit(embed=discord.Embed(
+            title="คุณชนะแล้วค่ะ!\n" + gen_display(word, all_char),
+            description=f"จำนวนครั้งผิด `{incor_count}`",
+            color=0x00ffff
+        ).set_author(
+            name="Hangman Game",
+            icon_url=self.client.user.avatar_url,
+            url=config["author_url"]
+        ))
+    else:
+        incor_count += 1
+        await _input.delete()
+    await message.edit(embed=discord.Embed(
+            title=gen_display(word, all_char),
+            description=f"จำนวนครั้งผิด `{incor_count}`",
+            color=0x00ffff
+        ).set_author(
+            name="Hangman Game",
+            icon_url=self.client.user.avatar_url,
+            url=config["author_url"]
+        ))
+    try:
+        _input = await self.client.wait_for('message', timeout=30)
+    except ast:
+        return await message.edit(embed=discord.Embed(
+            title="หมดเวลาแล้วค่ะ\n" + gen_display(word, all_char),
+            description=f"จำนวนครั้งผิด `{incor_count}`",
+            color=0x00ffff
+        ).set_author(
+            name="Hangman Game",
+            icon_url=self.client.user.avatar_url,
+            url=config["author_url"]
+        ))
+    await play(self, message, _input, all_char, word, cor_count, incor_count)
+
+def gen_display(word, all_char):
+    gen = []
+    for i in range(len(list(word))):
+        if list(word)[i] == all_char[i]:
+            gen.append("` `")
+            gen.append(" ")
+        else:
+            gen.append("`" + list(word)[i] + "`")
+            gen.append(" ")
+    return "".join(gen)
 
 async def cant(client, ctx):
     await ctx.reply(embed=discord.Embed(
