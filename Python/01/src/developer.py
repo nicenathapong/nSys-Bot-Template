@@ -1,11 +1,9 @@
 import discord
 from discord.ext import commands
-from src.functions import database, api
+from src.functions import api
 import json
 import random
-
-with open("./config.json","r",encoding="utf-8") as f:
-    config = json.load(f)
+from config import config
 
 class developer(commands.Cog):
     def __init__(self, client):
@@ -16,7 +14,7 @@ class developer(commands.Cog):
         await ctx.reply(embed=discord.Embed(color=0x00ffff).set_author(
             name=f"ปิงของบอทตอนนี้ อยู่ที่ {round(self.client.latency * 1000)}ms ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command(aliases=["bi","stats"])
@@ -24,7 +22,7 @@ class developer(commands.Cog):
         await ctx.reply(embed=discord.Embed(color=0x00ffff).set_author(
             name=f"ปิงของบอทตอนนี้ อยู่ที่ {round(self.client.latency * 1000)}ms ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command()
@@ -42,7 +40,7 @@ class developer(commands.Cog):
         await ctx.reply(embed=discord.Embed(title=f"เพิ่ม `{menu}` ลงในคลังเมนูเรียบร้อยค่ะ!", color=0x00ffff).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ).set_image(
             url=random.choice(json.loads(myresult[0][2]))["url"]
         ))

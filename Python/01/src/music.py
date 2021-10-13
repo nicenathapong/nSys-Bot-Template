@@ -1,12 +1,9 @@
 import discord
 from discord.ext import commands
-import json
 import wavelink
 from enum import Enum
 import re
-
-with open("./config.json","r",encoding="utf-8") as f:
-    config = json.load(f)
+from config import config
 
 URL_REGEX = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
 
@@ -80,7 +77,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         await self.connect_nodes()
 
     async def connect_nodes(self):
-        for node in config["lavalink"]:
+        for node in config.lavalink:
             await self.wavelink.initiate_node(**node)
 
     def get_player(self, obj):
@@ -101,7 +98,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 ).set_author(
                     name="ไม่สามารถดำเนินการได้ค่ะ!",
                     icon_url=self.client.user.avatar_url,
-                    url=config["author_url"]
+                    url=config.author_url
                 ))
         player = self.get_player(ctx)
         await player.connect(channel.id)
@@ -111,7 +108,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command(aliases=["p"])
@@ -127,7 +124,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 ).set_author(
                     name="ไม่สามารถดำเนินการได้ค่ะ!",
                     icon_url=self.client.user.avatar_url,
-                    url=config["author_url"]
+                    url=config.author_url
                 ))
         if query is None: return await ctx.reply(embed=discord.Embed(
             title="โปรดใส่ลิงก์หรือชื่อเพลงที่ต้องการจะให้เล่นมาด้วยนะคะ",
@@ -136,7 +133,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
         if not re.match(URL_REGEX, query): query = f"ytsearch:{query}"
@@ -150,7 +147,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
                 icon_url=self.client.user.avatar_url,
-                url=config["author_url"]
+                url=config.author_url
             ))
         
 

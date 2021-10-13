@@ -1,14 +1,11 @@
 import discord
 from discord.ext import commands
 import random
-from discord.ext.commands.core import check
 import requests
 import json
 from bs4 import BeautifulSoup
 from asyncio.exceptions import TimeoutError as ast
-
-with open("./config.json","r",encoding="utf-8") as f:
-    config = json.load(f)
+from config import config
 
 class game(commands.Cog):
     def __init__(self, client):
@@ -22,7 +19,7 @@ class game(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         async with ctx.typing():
             mycursor = self.client.mysql.cursor()
@@ -45,7 +42,7 @@ class game(commands.Cog):
                     ).set_author(
                         name="ไม่สามารถดำเนินการได้ค่ะ!",
                         icon_url=self.client.user.avatar_url,
-                        url=config["author_url"]
+                        url=config.author_url
                     ))
                 file_urls = list(map(lambda pic: pic["file_url"], res))
                 mycursor.execute("INSERT INTO rule34 (id, tags, pic) VALUES (%s, %s, %s)", (None, tag, json.dumps(file_urls)))
@@ -102,7 +99,7 @@ class game(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
         async def generateEmbed(ctx):

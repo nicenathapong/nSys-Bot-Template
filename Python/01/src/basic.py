@@ -4,9 +4,7 @@ import random
 import requests
 import json
 from src.functions import api
-
-with open("./config.json","r",encoding="utf-8") as f:
-    config = json.load(f)
+from config import config
 
 horoscope_res = [
     "แน่นอนอยู่แล้วค่า",
@@ -206,7 +204,7 @@ class basic(commands.Cog):
         ).set_author(
             name=f"{hour}:{minute}:{sec} | ขณะนี้เวลา {hour} นาฬิกา {minute} นาที {sec} วินาที ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command()
@@ -226,7 +224,7 @@ class basic(commands.Cog):
         ).set_author(
             name="อัพเดตสถานการณ์ โควิด-19 ในไทย ล่าสุดค่ะ",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ).add_field(
             name=f"หายป่วยวันนี้ `{new_recovered}` คน",
             value=
@@ -245,7 +243,7 @@ class basic(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         if member.bot: return await ctx.reply(embed=discord.Embed(
             title=f"ไม่สามารถ Shake ผู้ใช้ที่เป็นบอทได้นะคะ",
@@ -253,7 +251,7 @@ class basic(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         # if member.id in config["owner_id"]: member = ctx.author
         try:
@@ -265,7 +263,7 @@ class basic(commands.Cog):
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
                 icon_url=self.client.user.avatar_url,
-                url=config["author_url"]
+                url=config.author_url
             ))
         msg = await ctx.reply(embed=discord.Embed(
             title=f"กำลังเขย่า `{member}`",
@@ -273,7 +271,7 @@ class basic(commands.Cog):
         ).set_author(
             name="กำลังเขย่าผู้ใช้..",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         all_channel = []
         count = 0
@@ -291,7 +289,7 @@ class basic(commands.Cog):
         ).set_author(
             name="เขย่าผู้ใช้ เรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command()
@@ -303,7 +301,7 @@ class basic(commands.Cog):
         await ctx.reply(embed=discord.Embed(color=0x00ffff).set_author(
             name='ลอง "{0}" ไหมคะ?'.format(random_menu[1]),
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ).set_image(
             url=random.choice(json.loads(random_menu[2]))["url"]
         ))
@@ -317,7 +315,7 @@ class basic(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         async with ctx.typing():
             res = api.getimgurls(word, 1)
@@ -328,7 +326,7 @@ class basic(commands.Cog):
         ).set_author(
             name=f'นี่คือผลการค้นหาของ "{word}" ค่ะ!',
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ).set_image(
             url=res[0][0]["url"]
         ).set_footer(
@@ -344,7 +342,7 @@ class basic(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         async with ctx.typing():
             res = api.thai2loo(word)
@@ -365,7 +363,7 @@ class basic(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         async with ctx.typing():
             res = api.loo2thai(word)

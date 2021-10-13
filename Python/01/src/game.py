@@ -1,12 +1,11 @@
 import discord
 from discordTogether import DiscordTogether
 from discord.ext import commands
-import json
 import random
 from asyncio.exceptions import TimeoutError as ast
+from config import config
 
-with open("./config.json","r",encoding="utf-8") as f:
-    config = json.load(f)
+words = ["tennis","badminton","nice","cars","volleyball"]
 
 class game(commands.Cog):
     def __init__(self, client):
@@ -96,7 +95,7 @@ class game(commands.Cog):
         ).set_author(
             name="Hangman Game",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         try:
             _input = await self.client.wait_for('message', timeout=30)
@@ -110,17 +109,11 @@ class game(commands.Cog):
             ).set_author(
                 name="Hangman Game",
                 icon_url=self.client.user.avatar_url,
-                url=config["author_url"]
+                url=config.author_url
             ))
 
 def setup(client):
     client.add_cog(game(client))
-
-words = [
-    "tennis",
-    "football",
-    "badminton"
-]
 
 async def play(self, message, _input, all_char, word, cor_count=0, incor_count=0):
     if _input.content in all_char:
@@ -130,14 +123,14 @@ async def play(self, message, _input, all_char, word, cor_count=0, incor_count=0
                 all_char[n] = "` `"
                 break
         await _input.delete()
-        if cor_count == len(all_char) - 2: return await message.edit(embed=discord.Embed(
+        if cor_count == len(all_char): return await message.edit(embed=discord.Embed(
             title="คุณชนะแล้วค่ะ!\n" + gen_display(word, all_char),
             description=f"จำนวนครั้งผิด `{incor_count}`",
             color=0x00ffff
         ).set_author(
             name="Hangman Game",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
     else:
         incor_count += 1
@@ -149,7 +142,7 @@ async def play(self, message, _input, all_char, word, cor_count=0, incor_count=0
         ).set_author(
             name="Hangman Game",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
     try:
         _input = await self.client.wait_for('message', timeout=30)
@@ -161,7 +154,7 @@ async def play(self, message, _input, all_char, word, cor_count=0, incor_count=0
         ).set_author(
             name="Hangman Game",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
     await play(self, message, _input, all_char, word, cor_count, incor_count)
 
@@ -184,5 +177,5 @@ async def cant(client, ctx):
     ).set_author(
         name="ไม่สามารถดำเนินการได้ค่ะ!",
         icon_url=client.user.avatar_url,
-        url=config["author_url"]
+        url=config.author_url
     ))

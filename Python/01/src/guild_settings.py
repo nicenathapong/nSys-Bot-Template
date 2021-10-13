@@ -1,16 +1,11 @@
 import discord
-from discord import guild
-from discord import channel
 from discord.ext import commands
-import json
 from PIL import Image, ImageDraw, ImageFont
 import time
 import requests
 import io
 import os
-
-with open("./config.json","r",encoding="utf-8") as f:
-    config = json.load(f)
+from config import config
 
 class guild_settings(commands.Cog):
     def __init__(self, client):
@@ -21,12 +16,12 @@ class guild_settings(commands.Cog):
     async def setprefix(self, ctx, *, prefix=None):
         if prefix is None: return await ctx.reply(embed=discord.Embed(
             title=f"โปรดใส่ Prefix ที่ต้องการจะตั้งค่าด้วยนะคะ",
-            description="เช่น `{0}setprefix =`".format(config["prefix"]),
+            description="เช่น `{0}setprefix =`".format(config.prefix),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         mycursor = self.client.mysql.cursor()
         mycursor.execute("SELECT * FROM `guilds`")
@@ -46,7 +41,7 @@ class guild_settings(commands.Cog):
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command(aliases=["rmsetprefix"])
@@ -71,7 +66,7 @@ class guild_settings(commands.Cog):
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
         await ctx.reply(embed=discord.Embed(
@@ -80,7 +75,7 @@ class guild_settings(commands.Cog):
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command(aliases=["setjoinlog"])
@@ -88,21 +83,21 @@ class guild_settings(commands.Cog):
     async def welcome_message_add(self, ctx, channel_id=None):
         if channel_id is None: return await ctx.reply(embed=discord.Embed(
             title=f"โปรดใส่เลข ID ของช่องข้อความที่ต้องการจะตั้งค่าด้วยนะคะ",
-            description="เช่น `{0}setprefix 850819315745947719`".format(config["prefix"]),
+            description="เช่น `{0}setprefix 850819315745947719`".format(config.prefix),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         if not channel_id.isnumeric(): return await ctx.reply(embed=discord.Embed(
             title=f"โปรดใส่เลข ID ของช่องข้อความ\nที่ต้องการจะตั้งค่าให้ถูกต้องด้วยนะคะ",
-            description="เช่น `{0}setprefix 850819315745947719`".format(config["prefix"]),
+            description="เช่น `{0}setprefix 850819315745947719`".format(config.prefix),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
         try:
             channel = ctx.guild.get_channel(int(channel_id))
@@ -124,7 +119,7 @@ class guild_settings(commands.Cog):
                 ).set_author(
                     name="ดำเนินการเรียบร้อยค่ะ!",
                     icon_url=self.client.user.avatar_url,
-                    url=config["author_url"]
+                    url=config.author_url
                 ))
         except AttributeError:
             return await ctx.reply(embed=discord.Embed(
@@ -133,7 +128,7 @@ class guild_settings(commands.Cog):
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
                 icon_url=self.client.user.avatar_url,
-                url=config["author_url"]
+                url=config.author_url
             ))
         mycursor = self.client.mysql.cursor()
         mycursor.execute("SELECT * FROM `guilds`")
@@ -160,7 +155,7 @@ class guild_settings(commands.Cog):
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
                 icon_url=self.client.user.avatar_url,
-                url=config["author_url"]
+                url=config.author_url
             ))
 
         await ctx.reply(embed=discord.Embed(
@@ -169,7 +164,7 @@ class guild_settings(commands.Cog):
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.Cog.listener()
@@ -217,7 +212,7 @@ class guild_settings(commands.Cog):
                         ).set_author(
                             name="ไม่สามารถดำเนินการได้ค่ะ!",
                             icon_url=self.client.user.avatar_url,
-                            url=config["author_url"]
+                            url=config.author_url
                         ))
                 except AttributeError:
                     ctg = await ctx.guild.create_category("Create Room | nSys")
@@ -238,7 +233,7 @@ class guild_settings(commands.Cog):
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.command(aliases=["rmautovc"])
@@ -255,7 +250,7 @@ class guild_settings(commands.Cog):
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
                 icon_url=self.client.user.avatar_url,
-                url=config["author_url"]
+                url=config.author_url
             ))
             try:
                 channel = ctx.guild.get_channel(int(this_guild_settings[7]))
@@ -280,7 +275,7 @@ class guild_settings(commands.Cog):
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
                 icon_url=self.client.user.avatar_url,
-                url=config["author_url"]
+                url=config.author_url
             ))
 
         await ctx.reply(embed=discord.Embed(
@@ -289,7 +284,7 @@ class guild_settings(commands.Cog):
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
-            url=config["author_url"]
+            url=config.author_url
         ))
 
     @commands.Cog.listener()
@@ -325,10 +320,9 @@ class guild_settings(commands.Cog):
             guilds_settings = mycursor.fetchall()
             guilds = list(filter(lambda x: x[7] != None, guilds_settings))
 
-            for i in range(len(guilds)):
+            # for i in range(len(guilds)):
 
                 
-
 
     @commands.command(aliases=["reacroleadd"])
     @commands.has_permissions(administrator=True)
