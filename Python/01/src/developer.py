@@ -12,7 +12,7 @@ class developer(commands.Cog):
     @commands.command()
     async def ping(self, ctx):
         await ctx.reply(embed=discord.Embed(color=0x00ffff).set_author(
-            name=f"ปิงของบอทตอนนี้ อยู่ที่ {round(self.client.latency * 1000)}ms ค่ะ!",
+            name="ปิงของบอทตอนนี้ อยู่ที่ {0}ms ค่ะ!".format("{:,}".format(round(self.client.latency * 1000))),
             icon_url=self.client.user.avatar_url,
             url=config.author_url
         ))
