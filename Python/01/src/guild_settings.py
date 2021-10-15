@@ -1,4 +1,5 @@
 import discord
+from discord import player
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 import time
@@ -7,7 +8,7 @@ import io
 import os
 from config import config
 import json
-from discord_emoji import to_discord
+from discord_emoji import to_discord, to_unicode
 
 class guild_settings(commands.Cog):
     def __init__(self, client):
@@ -32,7 +33,7 @@ class guild_settings(commands.Cog):
             mycursor.execute(f"UPDATE `guilds` SET `custom_prefix` = '{prefix}' WHERE `guild_id` = '{ctx.guild.id}'")
         else:
             mycursor.execute(
-                "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (None, str(ctx.guild.id), prefix, None, None, None, None, None, None, None)
             )
 
@@ -119,10 +120,10 @@ class guild_settings(commands.Cog):
                 mycursor.execute(f"UPDATE `guilds` SET `welcome_channel_id` = '{str(channel.id)}' WHERE `guild_id` = '{ctx.guild.id}'")
             else:
                 mycursor.execute(
-                    "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (None, str(ctx.guild.id), None, None, None, None, str(channel.id), None, None, None)
                 )
-        except AttributeError:
+        except:
             return await ctx.reply(embed=discord.Embed(
                 title=f"ไม่พบช่องข้อความของ ID นั้นในดิสนี้ค่ะ",
                 color=0x00ffff
@@ -225,7 +226,7 @@ class guild_settings(commands.Cog):
                             icon_url=self.client.user.avatar_url,
                             url=config.author_url
                         ))
-                except AttributeError:
+                except:
                     ctg = await ctx.guild.create_category("Create Room | nSys")
                     new_channel = await ctg.create_voice_channel("join - to create you room")
                     mycursor.execute(f"UPDATE `guilds` SET `auto_voice_channel_id` = '{new_channel.id}' WHERE `guild_id` = '{ctx.guild.id}'")
@@ -233,7 +234,7 @@ class guild_settings(commands.Cog):
             ctg = await ctx.guild.create_category("Create Room | nSys")
             new_channel = await ctg.create_voice_channel("join - to create you room")
             mycursor.execute(
-                "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (None, str(ctx.guild.id), None, None, None, None, None, str(new_channel.id), None, None)
             )
 
@@ -271,7 +272,7 @@ class guild_settings(commands.Cog):
                         await ch.delete()
                     await ctg.delete()
                 mycursor.execute(f"UPDATE `guilds` SET `auto_voice_channel_id` = NULL WHERE `guild_id` = '{ctx.guild.id}'")
-            except AttributeError:
+            except:
                 mycursor.execute(f"UPDATE `guilds` SET `auto_voice_channel_id` = NULL WHERE `guild_id` = '{ctx.guild.id}'")
                 database_empty = 0
                 for i in range(len(this_guild_settings)):
@@ -334,7 +335,7 @@ class guild_settings(commands.Cog):
                     channel_system = channel.guild.get_channel(int(this_guild_settings[7]))
                     if channel_system.id is not None:
                         pass
-                except AttributeError:
+                except:
                     try:
                         ctg = channel.category
                         for ch in ctg.channels:
@@ -354,7 +355,7 @@ class guild_settings(commands.Cog):
                     ctg = discord.utils.get(channel.guild.channels, name="Create Room | nSys")
                     if ctg.id is not None:
                         pass
-                except AttributeError:
+                except:
                     try:
                         channel_main = discord.utils.get(channel.guild.channels, name="join - to create you room")
                         await channel_main.delete()
@@ -390,7 +391,7 @@ class guild_settings(commands.Cog):
                 pass
             if message.content is not None:
                 await message.add_reaction(emoji)
-        except AttributeError:
+        except:
             return await ctx.reply(embed=discord.Embed(
                 title=f"ไม่พบข้อความของ ID {channel_id} ค่ะ",
                 color=0x00ffff
@@ -400,7 +401,7 @@ class guild_settings(commands.Cog):
                 url=config.author_url
             ))
 
-        data = {"emoji": to_discord(emoji), "role_id": role.id}
+        data = {"message_id": message_id, "emoji": to_discord(emoji), "role_id": role.id}
         mycursor = self.client.mysql.cursor()
         mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{channel.guild.id}'")
         this_guild_settings = mycursor.fetchone()
@@ -421,7 +422,7 @@ class guild_settings(commands.Cog):
                 mycursor.execute(f"UPDATE `guilds` SET `reactions_roles` = '{json.dumps([data])}' WHERE `guild_id` = '{ctx.guild.id}'")
         else:
             mycursor.execute(
-                "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (None, str(ctx.guild.id), None, None, None, None, None, None, None, json.dumps([data]))
             )
 
@@ -435,7 +436,7 @@ class guild_settings(commands.Cog):
             url=config.author_url
         ))
 
-    @commands.command(aliases=["reacroleremove","rmreacrole"])
+    @commands.command(aliases=["reacroleremove","rmreacrole","reacrolerm"])
     @commands.has_permissions(administrator=True)
     async def reaction_role_remove(self, ctx, channel_id: int=None, message_id: int=None, emoji=None, role: discord.Role=None):
         if channel_id is None or message_id is None or emoji is None or role is None:
@@ -456,7 +457,7 @@ class guild_settings(commands.Cog):
                 pass
             if message.content is not None:
                 pass
-        except AttributeError:
+        except:
             return await ctx.reply(embed=discord.Embed(
                 title=f"ไม่พบข้อความของ ID {channel_id} ค่ะ",
                 color=0x00ffff
@@ -466,7 +467,7 @@ class guild_settings(commands.Cog):
                 url=config.author_url
             ))
 
-        data = {"emoji": to_discord(emoji), "role_id": role.id}
+        data = {"message_id": message_id, "emoji": to_discord(emoji), "role_id": role.id}
         mycursor = self.client.mysql.cursor()
         mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{channel.guild.id}'")
         this_guild_settings = mycursor.fetchone()
@@ -545,20 +546,232 @@ class guild_settings(commands.Cog):
                         except:
                             pass
 
+    @commands.Cog.listener()
+    async def on_raw_message_delete(self, payload):
+        mycursor = self.client.mysql.cursor()
+        mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{payload.guild_id}'")
+        this_guild_settings = mycursor.fetchone()
+        if this_guild_settings is not None:
+            if this_guild_settings[9] is not None:
+                data = json.loads(this_guild_settings[9])
+                all_message = list(map(lambda x: x["message_id"], data))
+                if payload.message_id in all_message:
+                    for i in data:
+                        if i["message_id"] == payload.message_id: del i
+                    if len(data) <= 1:
+                        mycursor.execute(f"UPDATE `guilds` SET `reactions_roles` = NULL WHERE `guild_id` = '{payload.guild_id}'")
+                    else:
+                        mycursor.execute(f"UPDATE `guilds` SET `reactions_roles` = '{json.dumps(data)}' WHERE `guild_id` = '{payload.guild_id}'")
+                    database_empty = 0
+                    for i in range(len(this_guild_settings)):
+                        if this_guild_settings.index(this_guild_settings[i]) != 0 and this_guild_settings.index(this_guild_settings[i]) != 1 and this_guild_settings[i] is None:
+                            database_empty += 1
+                    if database_empty >= 7:
+                        mycursor.execute(f"DELETE FROM `guilds` WHERE `guild_id` = '{payload.guild_id}'")
+                    print(f"\n[REAC_ROLE] Message_id [ {payload.message_id} - {self.client.get_guild(payload.guild_id).name} ] is lost.\n[REAC_ROLE] DELETE SETTINGS IN DATABASE FINISH.")
+
+
     @commands.command(aliases=["reacrolelist"])
     @commands.has_permissions(administrator=True)
-    async def reaction_role_list(self, ctx):
-        pass
+    async def reaction_role_list(self, ctx, message_id: int=None):
+        if message_id is None:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดใส่ Message ID ที่ต้องการจะดูข้อมูลด้วยนะคะ",
+                description="เช่น `{0}reacrolelist 898546934510415924`".format(config.prefix),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
-    @commands.command(aliases=["reacrolerremoveall"])
+        mycursor = self.client.mysql.cursor()
+        mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{ctx.guild.id}'")
+        this_guild_settings = mycursor.fetchone()
+        if this_guild_settings is not None:
+            if this_guild_settings[9] is not None:
+                data = json.loads(this_guild_settings[9])
+                message_settings = list(filter(lambda x: x["message_id"] == message_id, data))
+                if len(message_settings) > 0:
+                    return await ctx.reply(embed=discord.Embed(
+                        title=f"Message ID [{message_id}]",
+                        description="```" + "\n".join(list(map(lambda x: "msgID[{0}] : {1} => {2}".format(x["message_id"], to_unicode(x["emoji"]), discord.utils.get(ctx.guild.roles, id=x["role_id"]).name), message_settings))) + "```",
+                        color=0x00ffff
+                    ).set_author(
+                        name=f"Reactions roles data list",
+                        icon_url=self.client.user.avatar_url,
+                        url=config.author_url
+                    ))
+
+        await ctx.reply(embed=discord.Embed(
+            title=f"ไม่พบ Setting Reaction role",
+            description=f"ของ Message ID [{message_id}] ในระบบค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ไม่สามารถดำเนินการได้ค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
+
+    @commands.command(aliases=["reacrolerremoveall","rmallreacrole","reacrolermall"])
     @commands.has_permissions(administrator=True)
-    async def reaction_role_remove_all(self, ctx):
-        pass
+    async def reaction_role_remove_all(self, ctx, message_id: int=None):
+        if message_id is None:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดใส่ Message ID ที่ต้องการจะดูข้อมูลด้วยนะคะ",
+                description="เช่น `{0}reacrolelist 898546934510415924`".format(config.prefix),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
+        mycursor = self.client.mysql.cursor()
+        mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{ctx.guild.id}'")
+        this_guild_settings = mycursor.fetchone()
+        if this_guild_settings is not None:
+            if this_guild_settings[9] is not None:
+                mycursor.execute(f"UPDATE `guilds` SET `reactions_roles` = NULL WHERE `guild_id` = '{ctx.guild.id}'")
+                database_empty = 0
+                for i in range(len(this_guild_settings)):
+                    if this_guild_settings.index(this_guild_settings[i]) != 0 and this_guild_settings.index(this_guild_settings[i]) != 1 and this_guild_settings[i] is None:
+                        database_empty += 1
+                if database_empty >= 7:
+                    mycursor.execute(f"DELETE FROM `guilds` WHERE `guild_id` = '{ctx.guild.id}'")
+                await ctx.reply(embed=discord.Embed(
+                    title=f"ลบ Reaction Role เรียบร้อยค่ะ!",
+                    description="```" + f"msgID[{message_id}]" + "```",
+                    color=0x00ffff
+                ).set_author(
+                    name="ดำเนินการเรียบร้อยค่ะ!",
+                    icon_url=self.client.user.avatar_url,
+                    url=config.author_url
+                ))
+                return
+
+        await ctx.reply(embed=discord.Embed(
+            title=f"ไม่พบ Setting Reaction role",
+            description=f"ของ Message ID [{message_id}] ในระบบค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ไม่สามารถดำเนินการได้ค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
 
     @commands.command(aliases=["rankingmode"])
     @commands.has_permissions(administrator=True)
-    async def rankingsystem(self, ctx):
-        pass
+    async def rankingsystem(self, ctx, mode: str=None):
+        if mode is None and mode != "on" and mode != "off":
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดใส่โหมดที่คุณต้องการจะตั้งค่าด้วยนะคะ",
+                description="เช่น `{0}rankingmode on / {0}rankingmode off`".format(config.prefix),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
+        mycursor = self.client.mysql.cursor()
+        mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{ctx.guild.id}'")
+        this_guild_settings = mycursor.fetchone()
+        if this_guild_settings is not None:
+            if this_guild_settings[5] is None:
+                if mode == "on":
+                    mycursor.execute(f"UPDATE `guilds` SET `ranking_exp` = '{json.dumps([])}' WHERE `guild_id` = '{ctx.guild.id}'")
+                    await ctx.reply(embed=discord.Embed(
+                        title=f"เปิดการใช้งาน Ranking Mode\nของดิส `{ctx.guild.name}` เรียบร้อยค่ะ!",
+                        color=0x00ffff
+                    ).set_author(
+                        name="ดำเนินการเรียบร้อยค่ะ!",
+                        icon_url=self.client.user.avatar_url,
+                        url=config.author_url
+                    ))
+                    return
+                if mode == "off":
+                    return await ctx.reply(embed=discord.Embed(
+                        title=f"ดูเหมือนว่าดิสนี้จะปิด Ranking mode อยู่แล้วนะคะ",
+                        color=0x00ffff
+                    ).set_author(
+                        name="ไม่สามารถดำเนินการได้ค่ะ!",
+                        icon_url=self.client.user.avatar_url,
+                        url=config.author_url
+                    ))
+            else:
+                if mode == "on":
+                    return await ctx.reply(embed=discord.Embed(
+                        title=f"ดูเหมือนว่าดิสนี้จะเปิด Ranking mode อยู่แล้วนะคะ",
+                        color=0x00ffff
+                    ).set_author(
+                        name="ไม่สามารถดำเนินการได้ค่ะ!",
+                        icon_url=self.client.user.avatar_url,
+                        url=config.author_url
+                    ))
+                if mode == "off":
+                    mycursor.execute(f"UPDATE `guilds` SET `ranking_exp` = NULL WHERE `guild_id` = '{ctx.guild.id}'")
+                    database_empty = 0
+                    for i in range(len(this_guild_settings)):
+                        if this_guild_settings.index(this_guild_settings[i]) != 0 and this_guild_settings.index(this_guild_settings[i]) != 1 and this_guild_settings[i] is None:
+                            database_empty += 1
+                    if database_empty >= 7:
+                        mycursor.execute(f"DELETE FROM `guilds` WHERE `guild_id` = '{ctx.guild.id}'")
+                    await ctx.reply(embed=discord.Embed(
+                        title=f"ปิดการใช้งาน Ranking Mode\nของดิส `{ctx.guild.name}` เรียบร้อยค่ะ!",
+                        description="*ข้อมูล ranking_exp ทั้งหมดจะถูกล้าง*",
+                        color=0x00ffff
+                    ).set_author(
+                        name="ดำเนินการเรียบร้อยค่ะ!",
+                        icon_url=self.client.user.avatar_url,
+                        url=config.author_url
+                    ))
+                    return
+        else:
+            if mode == "on":
+                mycursor.execute(
+                    "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (None, str(ctx.guild.id), None, None, None, json.dumps([]), None, None, None, None)
+                )
+                await ctx.reply(embed=discord.Embed(
+                    title=f"เปิดการใช้งาน Ranking Mode\nของดิส `{ctx.guild.name}` เรียบร้อยค่ะ!",
+                    color=0x00ffff
+                ).set_author(
+                    name="ดำเนินการเรียบร้อยค่ะ!",
+                    icon_url=self.client.user.avatar_url,
+                    url=config.author_url
+                ))
+                return
+            if mode == "off":
+                return await ctx.reply(embed=discord.Embed(
+                    title=f"ดูเหมือนว่าดิสนี้จะปิด Ranking mode อยู่แล้วนะคะ",
+                    color=0x00ffff
+                ).set_author(
+                    name="ไม่สามารถดำเนินการได้ค่ะ!",
+                    icon_url=self.client.user.avatar_url,
+                    url=config.author_url
+                ))
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        mycursor = self.client.mysql.cursor()
+        mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{message.guild.id}'")
+        this_guild_settings = mycursor.fetchone()
+        if this_guild_settings is not None:
+            if this_guild_settings[5] is not None:
+                data = json.loads(this_guild_settings[5])
+                all_data_member = list(map(lambda x: x["member_id"], data))
+                if message.author.id in all_data_member:
+                    for i in range(len(data)):
+                        if data[i]["member_id"] == message.author.id:
+                            old_score = data[i]["score"]
+                            del data[i]
+                            new_score = {"member_id": message.author.id, "score": old_score + 10}
+                            data.append(new_score)
+                    mycursor.execute(f"UPDATE `guilds` SET `ranking_exp` = '{json.dumps(data)}' WHERE `guild_id` = '{message.guild.id}'")
+                else:
+                    data.append({"member_id": message.author.id, "score": 10})
+                    mycursor.execute(f"UPDATE `guilds` SET `ranking_exp` = '{json.dumps(data)}' WHERE `guild_id` = '{message.guild.id}'")
 
 def setup(client):
     client.add_cog(guild_settings(client))

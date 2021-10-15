@@ -1,0 +1,6 @@
+discord.py
+mysql-connector-python
+bs4
+discord-Together
+wavelink
+discord_emoji

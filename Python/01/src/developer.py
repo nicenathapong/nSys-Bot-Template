@@ -36,13 +36,13 @@ class developer(commands.Cog):
                 api_res = api.getimgurls(menu, 3)
                 mycursor.execute("INSERT INTO food (id, menu, pic) VALUES (%s, %s, %s)", (None, menu, json.dumps(api_res[0])))
             mycursor.execute(f"SELECT * FROM `food` WHERE menu ='{menu}'")
-            myresult = mycursor.fetchall()
+            myresult = mycursor.fetchone()
         await ctx.reply(embed=discord.Embed(title=f"เพิ่ม `{menu}` ลงในคลังเมนูเรียบร้อยค่ะ!", color=0x00ffff).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
             icon_url=self.client.user.avatar_url,
             url=config.author_url
         ).set_image(
-            url=random.choice(json.loads(myresult[0][2]))["url"]
+            url=random.choice(json.loads(myresult[2]))["url"]
         ))
 
 def setup(client):
