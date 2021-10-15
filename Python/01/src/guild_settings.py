@@ -1,4 +1,3 @@
-from re import M
 import discord
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
@@ -186,25 +185,21 @@ class guild_settings(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        mycursor = self.client.mysql.cursor(buffered=True)
+        mycursor = self.client.mysql.cursor()
         mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{member.guild.id}'")
-        try:
-            welcome_channel_id = mycursor.fetchone()[6]
-            if welcome_channel_id is None: return
-            await send_welcome_message(self, member, welcome_channel_id, _type="JOIN")
-        except IndexError:
-            return
+        this_guild_settings = mycursor.fetchone()
+        if this_guild_settings is not None:
+            if this_guild_settings[6] is not None:
+                await send_welcome_message(self, member, this_guild_settings[6], "JOIN")
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        mycursor = self.client.mysql.cursor(buffered=True)
+        mycursor = self.client.mysql.cursor()
         mycursor.execute(f"SELECT * FROM `guilds` WHERE `guild_id` LIKE '{member.guild.id}'")
-        try:
-            welcome_channel_id = mycursor.fetchone()[6]
-            if welcome_channel_id is None: return
-            await send_welcome_message(self, member, welcome_channel_id, _type="LEFT")
-        except IndexError:
-            return
+        this_guild_settings = mycursor.fetchone()
+        if this_guild_settings is not None:
+            if this_guild_settings[6] is not None:
+               await  send_welcome_message(self, member, this_guild_settings[6], "LEFT")
     
     @commands.command(aliases=["addautovc"])
     @commands.has_permissions(administrator=True)
