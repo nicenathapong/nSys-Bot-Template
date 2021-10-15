@@ -26,6 +26,7 @@ for file in os.listdir("./src"):
         print(f"Loading extension {file[:-3]} finish!")
 
 database.connect_to_database(client)
+# client.loop.create_task(music.wavelink.connect_nodes(client))
 
 async def activity(client, index=0):
     statuses = [

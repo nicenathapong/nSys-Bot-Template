@@ -9,6 +9,7 @@ import os
 from config import config
 import json
 from discord_emoji import to_discord, to_unicode
+from src.functions.main import get_prefix
 
 class guild_settings(commands.Cog):
     def __init__(self, client):
@@ -19,7 +20,7 @@ class guild_settings(commands.Cog):
     async def setprefix(self, ctx, *, prefix=None):
         if prefix is None: return await ctx.reply(embed=discord.Embed(
             title=f"โปรดใส่ Prefix ที่ต้องการจะตั้งค่าด้วยนะคะ",
-            description="เช่น `{0}setprefix =`".format(config.prefix),
+            description="เช่น `{0}setprefix =`".format(get_prefix(self.client, ctx)[0]),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -81,7 +82,7 @@ class guild_settings(commands.Cog):
 
         await ctx.reply(embed=discord.Embed(
             title=f"ลบการตั้งค่า Prefix เรียบร้อยค่ะ!",
-            description=f"ตอนนี้ Prefix ของดิสนี้กลับมาเป็น {config.prefix} แล้วค่ะ",
+            description=f"ตอนนี้ Prefix ของดิสนี้กลับมาเป็น {get_prefix(self.client, ctx)[0]} แล้วค่ะ",
             color=0x00ffff
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
@@ -94,7 +95,7 @@ class guild_settings(commands.Cog):
     async def welcome_message_add(self, ctx, channel_id=None):
         if channel_id is None: return await ctx.reply(embed=discord.Embed(
             title=f"โปรดใส่เลข ID ของช่องข้อความที่ต้องการจะตั้งค่าด้วยนะคะ",
-            description="เช่น `{0}setprefix 850819315745947719`".format(config.prefix),
+            description="เช่น `{0}setprefix 850819315745947719`".format(get_prefix(self.client, ctx)[0]),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -103,7 +104,7 @@ class guild_settings(commands.Cog):
         ))
         if not channel_id.isnumeric(): return await ctx.reply(embed=discord.Embed(
             title=f"โปรดใส่เลข ID ของช่องข้อความ\nที่ต้องการจะตั้งค่าให้ถูกต้องด้วยนะคะ",
-            description="เช่น `{0}setprefix 850819315745947719`".format(config.prefix),
+            description="เช่น `{0}setprefix 850819315745947719`".format(get_prefix(self.client, ctx)[0]),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -376,7 +377,7 @@ class guild_settings(commands.Cog):
         if channel_id is None or message_id is None or emoji is None or role is None:
             return await ctx.reply(embed=discord.Embed(
                 title=f"โปรดใส่ข้อมูลของ Reaction Role ให้ครบถ้วนด้วยนะคะ",
-                description="เช่น `{0}reacroleadd 850819315745947719 898267492403793961 👍 <แท็กยศนั้นๆ>`".format(config.prefix),
+                description="เช่น `{0}reacroleadd 850819315745947719 898267492403793961 👍 <แท็กยศนั้นๆ>`".format(get_prefix(self.client, ctx)[0]),
                 color=0x00ffff
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -442,7 +443,7 @@ class guild_settings(commands.Cog):
         if channel_id is None or message_id is None or emoji is None or role is None:
             return await ctx.reply(embed=discord.Embed(
                 title=f"โปรดใส่ข้อมูลของ Reaction Role ให้ครบถ้วนด้วยนะคะ",
-                description="เช่น `{0}reacroleadd 850819315745947719 898267492403793961 👍 <แท็กยศนั้นๆ>`".format(config.prefix),
+                description="เช่น `{0}reacroleadd 850819315745947719 898267492403793961 👍 <แท็กยศนั้นๆ>`".format(get_prefix(self.client, ctx)[0]),
                 color=0x00ffff
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -577,7 +578,7 @@ class guild_settings(commands.Cog):
         if message_id is None:
             return await ctx.reply(embed=discord.Embed(
                 title=f"โปรดใส่ Message ID ที่ต้องการจะดูข้อมูลด้วยนะคะ",
-                description="เช่น `{0}reacrolelist 898546934510415924`".format(config.prefix),
+                description="เช่น `{0}reacrolelist 898546934510415924`".format(get_prefix(self.client, ctx)[0]),
                 color=0x00ffff
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -619,7 +620,7 @@ class guild_settings(commands.Cog):
         if message_id is None:
             return await ctx.reply(embed=discord.Embed(
                 title=f"โปรดใส่ Message ID ที่ต้องการจะดูข้อมูลด้วยนะคะ",
-                description="เช่น `{0}reacrolelist 898546934510415924`".format(config.prefix),
+                description="เช่น `{0}reacrolelist 898546934510415924`".format(get_prefix(self.client, ctx)[0]),
                 color=0x00ffff
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -666,7 +667,7 @@ class guild_settings(commands.Cog):
         if mode is None and mode != "on" and mode != "off":
             return await ctx.reply(embed=discord.Embed(
                 title=f"โปรดใส่โหมดที่คุณต้องการจะตั้งค่าด้วยนะคะ",
-                description="เช่น `{0}rankingmode on / {0}rankingmode off`".format(config.prefix),
+                description="เช่น `{0}rankingmode on / {0}rankingmode off`".format(get_prefix(self.client, ctx)[0]),
                 color=0x00ffff
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",
