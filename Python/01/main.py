@@ -66,19 +66,21 @@ async def on_command_completion(ctx):
             url=config.author_url
         ))
 
-# @client.event
-# async def on_command_error(ctx, error):
-#     if isinstance(error, commands.errors.MissingPermissions):
-#         await ctx.reply(embed=discord.Embed(
-#             title=f"คุณต้องมียศ Administrator ของดิสนี้",
-#             description="จึงจะสามารถใช้คำสั่งนี้ได้ค่ะ",
-#             color=0x00ffff
-#         ).set_author(
-#             name="ไม่สามารถดำเนินการได้ค่ะ!",
-#             icon_url=client.user.avatar_url,
-#             url=config.author_url
-#         ))
-#     else:
-#         print(error)
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.errors.MissingPermissions):
+        await ctx.reply(embed=discord.Embed(
+            title=f"คุณต้องมียศ Administrator ของดิสนี้",
+            description="จึงจะสามารถใช้คำสั่งนี้ได้ค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ไม่สามารถดำเนินการได้ค่ะ!",
+            icon_url=client.user.avatar_url,
+            url=config.author_url
+        ))
+    elif isinstance(error, commands.errors.CommandNotFound):
+        pass
+    else:
+        print(error)
     
 client.run(config.token)

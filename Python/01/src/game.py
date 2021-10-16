@@ -1,5 +1,5 @@
 import discord
-from discordTogether import DiscordTogether
+from discord_together import DiscordTogether
 from discord.ext import commands
 import random
 from asyncio.exceptions import TimeoutError as ast

@@ -1,3 +1,4 @@
+from time import sleep
 import discord
 from discord import player
 from discord.ext import commands
@@ -274,10 +275,18 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         if not member.bot and after.channel is None:
             if not [m for m in before.channel.members if not m.bot]:
                 await self.get_player(member.guild).teardown()
+        elif member.bot and after.channel is None:
+            await member.edit(nick=None)
 
     @wavelink.WavelinkMixin.listener()
     async def on_node_ready(self, node: wavelink.Node):
         print(f"Connect to node [{node.identifier}] finish!")
+
+    @wavelink.WavelinkMixin.listener("on_track_start")
+    async def on_track_start(self, node: wavelink.Node, payload: wavelink.events.TrackStart):
+        guild = self.client.get_guild(payload.player.guild_id)
+        member = guild.get_member(self.client.user.id)
+        await member.edit(nick="🎶 {0}".format(payload.player.queue.current_track.title[:30]))
 
     @wavelink.WavelinkMixin.listener("on_track_stuck")
     @wavelink.WavelinkMixin.listener("on_track_end")
@@ -287,6 +296,9 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             await payload.player.repeat_track()
         else:
             await payload.player.advance()
+        guild = self.client.get_guild(payload.player.guild_id)
+        member = guild.get_member(self.client.user.id)
+        await member.edit(nick=None)
 
     async def cog_check(self, ctx):
         if isinstance(ctx.channel, discord.DMChannel):
@@ -405,7 +417,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 for track in current:
                     embed.add_field(
                         name=f"{tracks.tracks.index(track) + 1}) {track.title}",
-                        value=f"*{convertMs(track.length)}* | {track.author}",
+                        value="*{0}* | {1}".format("STREAM" if track.is_stream else convertMs(track.length), track.author),
                         inline=False
                     )
                 return embed
@@ -421,7 +433,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
 
             while True:
                 try:
-                    reaction, user = await self.client.wait_for('reaction_add', timeout=180, check=reac_check)
+                    reaction, user = await self.client.wait_for('reaction_add', timeout=300, check=reac_check)
                     em = str(reaction.emoji)
                 except ast:
                     break
@@ -888,7 +900,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 for track in current:
                     embed.add_field(
                         name=f"{player.queue.upcoming.index(track) + 1}) {track.title}",
-                        value=f"*{convertMs(track.length)}* | {track.author}",
+                        value="*{0}* | {1}".format("STREAM" if track.is_stream else convertMs(track.length), track.author),
                         inline=False
                     )
                 if player.queue.current_track != None:
@@ -914,7 +926,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
 
             while True:
                 try:
-                    reaction, user = await self.client.wait_for('reaction_add', timeout=180, check=reac_check)
+                    reaction, user = await self.client.wait_for('reaction_add', timeout=300, check=reac_check)
                     em = str(reaction.emoji)
                 except ast:
                     break
