@@ -1,4 +1,5 @@
 import discord
+from discord import player
 from discord.ext import commands
 from config import config
 import wavelink
@@ -370,7 +371,17 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         if not re.match(URL_REGEX, query):
             query = f"ytsearch:{query}"
         tracks = await self.wavelink.get_tracks(query)
-        if not tracks: raise NoTracksFound
+        if not tracks:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ไม่พบผลการค้นหาของเพลงที่คุณขอมาค่ะ!",
+                description="ลองใช้ Keyword อื่นดูนะคะ หรือลองใช้เป็นลิงก์ดูค่ะ",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+            
         await player.add_tracks(ctx, tracks)
 
         if isinstance(tracks, wavelink.TrackPlaylist): # playlist
@@ -444,7 +455,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 inline=True
             ).add_field(
                 name="ระยะเวลา",
-                value="`{0}`".format(tracks[0].length),
+                value="`{0}`".format(convertMs(tracks[0].length)),
                 inline=True
             ))
         else: # search
@@ -465,9 +476,12 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 inline=True
             ).add_field(
                 name="ระยะเวลา",
-                value="`{0}`".format(tracks[0].length),
+                value="`{0}`".format(convertMs(tracks[0].length)),
                 inline=True
             ))
+
+        if not player.is_playing:
+            await player.start_playback()
 
     @play_command.error
     async def play_command_error(self, ctx, exc):
@@ -493,16 +507,6 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             ))
             await asyncio.sleep(5)
             await msg.delete()
-        elif isinstance(exc, NoTracksFound):
-            await ctx.reply(embed=discord.Embed(
-                title=f"ไม่พบผลการค้นหาของเพลงที่คุณขอมาค่ะ!",
-                description="ลองใช้ Keyword อื่นดูนะคะ หรือลองใช้เป็นลิงก์ดูค่ะ",
-                color=0x00ffff
-            ).set_author(
-                name="ไม่สามารถดำเนินการได้ค่ะ!",
-                icon_url=self.client.user.avatar_url,
-                url=config.author_url
-            ))
 
     @commands.command(name="pause")
     async def pause_command(self, ctx):
@@ -739,6 +743,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         player.queue.shuffle()
         await ctx.reply(embed=discord.Embed(
             title=f"สับเพลงในคิว เรียบร้อยค่ะ",
+            description="ใช้คำสั่ง queue เพื่อดูการเปลี่ยนแปลงได้เลยค่ะ",
             color=0x00ffff
         ).set_author(
             name="ดำเนินการเรียบร้อยค่ะ!",
@@ -928,68 +933,112 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                     if i == math.floor(len(player.queue.upcoming) / 10) * 10: i = (math.floor(len(player.queue.upcoming) / 10) * 10) - 10
                     i += 10
                     await embedMessage.edit(embed=generateEmbed(i))
+        else:
+            await ctx.reply(embed=discord.Embed(
+                title=player.queue.current_track.title,
+                url=player.queue.current_track.uri,
+                color=0x00ffff
+            ).set_author(
+                name="ขณะนี้กำลังเล่นเพลง",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ).set_thumbnail(
+                url=player.queue.current_track.thumb
+            ).add_field(
+                name=f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})",
+                value="progressbar",
+                inline=True
+            ))
+
 
     # Requests -----------------------------------------------------------------
 
-    @commands.group(name="volume", invoke_without_command=True)
-    async def volume_group(self, ctx, volume: int):
+    @commands.group(aliases=["volume","vol"])
+    async def volume_group(self, ctx, volume: int=None):
         player = self.get_player(ctx)
 
-        if volume < 0:
-            raise VolumeTooLow
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
-        if volume > 150:
-            raise VolumeTooHigh
+        if volume is None:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดระบุระดับเสียงที่ต้องการปรับด้วยนะคะ",
+                description="เช่น `{0}vol 50`".format(get_prefix(self.client, ctx)),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
+        if volume < 0 or volume > 150:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"สามารถตั้งค่าระดับเสียง ได้เพียง 1 - 150 เท่านั้นนะคะ",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
         await player.set_volume(volume)
-        await ctx.send(f"Volume set to {volume:,}%")
 
-    @volume_group.error
-    async def volume_group_error(self, ctx, exc):
-        if isinstance(exc, VolumeTooLow):
-            await ctx.send("The volume must be 0% or above.")
-        elif isinstance(exc, VolumeTooHigh):
-            await ctx.send("The volume must be 150% or below.")
-
-    @volume_group.command(name="up")
-    async def volume_up_command(self, ctx):
-        player = self.get_player(ctx)
-
-        if player.volume == 150:
-            raise MaxVolume
-
-        await player.set_volume(value := min(player.volume + 10, 150))
-        await ctx.send(f"Volume set to {value:,}%")
-
-    @volume_up_command.error
-    async def volume_up_command_error(self, ctx, exc):
-        if isinstance(exc, MaxVolume):
-            await ctx.send("The player is already at max volume.")
-
-    @volume_group.command(name="down")
-    async def volume_down_command(self, ctx):
-        player = self.get_player(ctx)
-
-        if player.volume == 0:
-            raise MinVolume
-
-        await player.set_volume(value := max(0, player.volume - 10))
-        await ctx.send(f"Volume set to {value:,}%")
-
-    @volume_down_command.error
-    async def volume_down_command_error(self, ctx, exc):
-        if isinstance(exc, MinVolume):
-            await ctx.send("The player is already at min volume.")
+        await ctx.reply(embed=discord.Embed(
+            title=f"ตั้งค่าระดับเสียง เป็น `{volume}` เรียบร้อยค่ะ!",
+            color=0x00ffff
+        ).set_author(
+            name="ดำเนินการเรียบร้อยค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
 
     @commands.command(name="lyrics")
     async def lyrics_command(self, ctx, name: t.Optional[str]):
         player = self.get_player(ctx)
+
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+        
         name = name or player.queue.current_track.title
 
         async with ctx.typing():
             async with aiohttp.request("GET", LYRICS_URL + name, headers={}) as r:
                 if not 200 <= r.status <= 299:
-                    raise NoLyricsFound
+                    return await ctx.send("No lyrics could be found.")
 
                 data = await r.json()
 
@@ -1006,140 +1055,353 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 embed.set_author(name=data["author"])
                 await ctx.send(embed=embed)
 
-    @lyrics_command.error
-    async def lyrics_command_error(self, ctx, exc):
-        if isinstance(exc, NoLyricsFound):
-            await ctx.send("No lyrics could be found.")
-
     @commands.command(name="eq")
-    async def eq_command(self, ctx, preset: str):
+    async def eq_command(self, ctx, preset: str=None):
         player = self.get_player(ctx)
+
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
         eq = getattr(wavelink.eqs.Equalizer, preset, None)
         if not eq:
-            raise InvalidEQPreset
+            return await ctx.send("The EQ preset must be either 'flat', 'boost', 'metal', or 'piano'.")
 
         await player.set_eq(eq())
         await ctx.send(f"Equaliser adjusted to the {preset} preset.")
-
-    @eq_command.error
-    async def eq_command_error(self, ctx, exc):
-        if isinstance(exc, InvalidEQPreset):
-            await ctx.send("The EQ preset must be either 'flat', 'boost', 'metal', or 'piano'.")
 
     @commands.command(name="adveq", aliases=["aeq"])
     async def adveq_command(self, ctx, band: int, gain: float):
         player = self.get_player(ctx)
 
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
         if not 1 <= band <= 15 and band not in HZ_BANDS:
-            raise NonExistentEQBand
+            return await ctx.send(
+                "This is a 15 band equaliser -- the band number should be between 1 and 15, or one of the following "
+                "frequencies: " + ", ".join(str(b) for b in HZ_BANDS)
+            )
 
         if band > 15:
             band = HZ_BANDS.index(band) + 1
 
         if abs(gain) > 10:
-            raise EQGainOutOfBounds
+            return await ctx.send("The EQ gain for any band should be between 10 dB and -10 dB.")
 
         player.eq_levels[band - 1] = gain / 10
         eq = wavelink.eqs.Equalizer(levels=[(i, gain) for i, gain in enumerate(player.eq_levels)])
         await player.set_eq(eq)
         await ctx.send("Equaliser adjusted.")
 
-    @adveq_command.error
-    async def adveq_command_error(self, ctx, exc):
-        if isinstance(exc, NonExistentEQBand):
-            await ctx.send(
-                "This is a 15 band equaliser -- the band number should be between 1 and 15, or one of the following "
-                "frequencies: " + ", ".join(str(b) for b in HZ_BANDS)
-            )
-        elif isinstance(exc, EQGainOutOfBounds):
-            await ctx.send("The EQ gain for any band should be between 10 dB and -10 dB.")
-
-    @commands.command(name="playing", aliases=["np"])
-    async def playing_command(self, ctx):
+    @commands.command(aliases=["np"])
+    async def now_playing_command(self, ctx):
         player = self.get_player(ctx)
 
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
         if not player.is_playing:
-            raise PlayerIsAlreadyPaused
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
-        embed = discord.Embed(
-            title="Now playing",
-            colour=ctx.author.colour,
-            timestamp=dt.datetime.utcnow(),
-        )
-        embed.set_author(name="Playback Information")
-        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
-        embed.add_field(name="Track title", value=player.queue.current_track.title, inline=False)
-        embed.add_field(name="Artist", value=player.queue.current_track.author, inline=False)
-
-        position = divmod(player.position, 60000)
-        length = divmod(player.queue.current_track.length, 60000)
-        embed.add_field(
-            name="Position",
-            value=f"{int(position[0])}:{round(position[1]/1000):02}/{int(length[0])}:{round(length[1]/1000):02}",
-            inline=False
-        )
-
-        await ctx.send(embed=embed)
-
-    @playing_command.error
-    async def playing_command_error(self, ctx, exc):
-        if isinstance(exc, PlayerIsAlreadyPaused):
-            await ctx.send("There is no track currently playing.")
+        await ctx.reply(embed=discord.Embed(
+            title=player.queue.current_track.title,
+            url=player.queue.current_track.uri,
+            color=0x00ffff
+        ).set_author(
+            name="ขณะนี้กำลังเล่นเพลง",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ).set_thumbnail(
+            url=player.queue.current_track.thumb
+        ).add_field(
+            name=f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})",
+            value="progressbar",
+            inline=True
+        ))
 
     @commands.command(name="skipto", aliases=["playindex"])
-    async def skipto_command(self, ctx, index: int):
+    async def skipto_command(self, ctx, index: int=None):
         player = self.get_player(ctx)
 
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
         if player.queue.is_empty:
-            raise QueueIsEmpty
+            msg = await ctx.reply(embed=discord.Embed(
+                title=f"คิวเพลงในขณะนี้โล่งอยู่ค่ะ",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+            await asyncio.sleep(5)
+            return await msg.delete()
+
+        if index is None:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดระบุแหน่งเพลงที่ต้องการจะให้ข้ามไปด้วยนะคะ",
+                description="เช่น `{0}skipto`".format(get_prefix(self.client, ctx)),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
         if not 0 <= index <= player.queue.length:
-            raise NoMoreTracks
+           return await ctx.reply(embed=discord.Embed(
+                title=f"ไม่สามารถข้ามไปเล่นเพลงที่ `{index}` ได้ค่ะ",
+                description=f"ดูเหมือนคิวเพลงจะตันถึงแค่เพลงที่ {player.queue.length} นะคะ",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
         player.queue.position = index - 2
         await player.stop()
-        await ctx.send(f"Playing track in position {index}.")
 
-    @skipto_command.error
-    async def skipto_command_error(self, ctx, exc):
-        if isinstance(exc, QueueIsEmpty):
-            await ctx.send("There are no tracks in the queue.")
-        elif isinstance(exc, NoMoreTracks):
-            await ctx.send("That index is out of the bounds of the queue.")
+        await ctx.reply(embed=discord.Embed(
+            title=f"ข้ามไปเล่นเพลงที่ `{index}` เรียบร้อยค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ดำเนินการเรียบร้อยค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
 
     @commands.command(name="restart")
     async def restart_command(self, ctx):
         player = self.get_player(ctx)
 
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
         if player.queue.is_empty:
-            raise QueueIsEmpty
+            msg = await ctx.reply(embed=discord.Embed(
+                title=f"คิวเพลงในขณะนี้โล่งอยู่ค่ะ",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+            await asyncio.sleep(5)
+            return await msg.delete()
 
         await player.seek(0)
-        await ctx.send("Track restarted.")
+        await ctx.reply(embed=discord.Embed(
+            title=f"เริ่มเล่นเพลงใหม่ เรียบร้อยค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ดำเนินการเรียบร้อยค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
 
-    @restart_command.error
-    async def restart_command_error(self, ctx, exc):
-        if isinstance(exc, QueueIsEmpty):
-            await ctx.send("There are no tracks in the queue.")
-
-    @commands.command(name="seek")
-    async def seek_command(self, ctx, position: str):
+    @commands.command(aliases=["seek"])
+    async def seek_command(self, ctx, position: str=None):
         player = self.get_player(ctx)
 
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
         if player.queue.is_empty:
-            raise QueueIsEmpty
+            msg = await ctx.reply(embed=discord.Embed(
+                title=f"คิวเพลงในขณะนี้โล่งอยู่ค่ะ",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+            await asyncio.sleep(5)
+            return await msg.delete()
+
+        if position is None:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดระบุแหน่งเพลงที่ต้องการจะให้ข้ามไปด้วยนะคะ",
+                description="เช่น `{0}seek 1:23`".format(get_prefix(self.client, ctx)),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
         if not (match := re.match(TIME_REGEX, position)):
-            raise InvalidTimeString
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดกรอกเวลาให้ถูกต้องด้วยนะคะ",
+                description="เช่น `{0}seek 1:23`".format(get_prefix(self.client, ctx)),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
 
         if match.group(3):
             secs = (int(match.group(1)) * 60) + (int(match.group(3)))
         else:
             secs = int(match.group(1))
 
+        if secs*1000 > player.queue.current_track.length:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ไม่สามารถข้ามไปยังนาทีที่ {position} ได้ค่ะ",
+                description=f"เพลงที่กำลังเล่นอยู่ขณะนี้ มีความยาว {convertMs(player.queue.current_track.length)} ค่ะ",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
         await player.seek(secs * 1000)
-        await ctx.send("Seeked.")
+        await ctx.reply(embed=discord.Embed(
+            title=f"ข้ามไปยังนาทีที่ {position} เรียบร้อยค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ดำเนินการเรียบร้อยค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
+
+    @commands.command(aliases=["dis","disconnect","leave","stop"])
+    async def disconnect_command(self, ctx):
+        player = self.get_player(ctx)
+
+        if not player.is_connected:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+ 
+        if not player.is_playing:
+            return await ctx.reply(embed=discord.Embed(
+                title=f"ดูเหมือนตอนนี้บอทจะไม่ได้เล่นเพลงอยู่นะคะ?",
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
+        channel = ctx.guild.get_channel(player.channel_id)
+        await player.teardown()
+        await ctx.reply(embed=discord.Embed(
+            title=f"ตัดการเชื่อมต่อจากช่องเสียง `{channel.name}` เรียบร้อยค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ดำเนินการเรียบร้อยค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
+
 
 def setup(client):
     client.add_cog(music(client))
