@@ -288,9 +288,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         member = guild.get_member(self.client.user.id)
         await member.edit(nick="🎶 {0}".format(payload.player.queue.current_track.title[:30]))
 
-    @wavelink.WavelinkMixin.listener("on_track_stuck")
     @wavelink.WavelinkMixin.listener("on_track_end")
-    @wavelink.WavelinkMixin.listener("on_track_exception")
     async def on_player_stop(self, node, payload):
         if payload.player.queue.repeat_mode == RepeatMode.ONE:
             await payload.player.repeat_track()
@@ -908,7 +906,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                         name=
                             "ขณะนี้กำลังเล่นเพลง\n" +
                             f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})\n" +
-                            MusicBar(player.position, player.queue.current_track.length, length=20).write_progress(**MusicTemplates.CHARS) + "\n"
+                            MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS) + "\n"
                             f"{player.queue.current_track.title}",
                         value=f"*{convertMs(player.queue.current_track.length)}* | {player.queue.current_track.author}",
                         inline=False
@@ -955,7 +953,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 url=player.queue.current_track.thumb
             ).add_field(
                 name=f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})",
-                value=MusicBar(player.position, player.queue.current_track.length, length=20).write_progress(**MusicTemplates.CHARS),
+                value=MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS),
                 inline=True
             ).add_field(
                 name="จากช่อง",
@@ -1276,7 +1274,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             url=player.queue.current_track.thumb
         ).add_field(
             name=f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})",
-            value=MusicBar(player.position, player.queue.current_track.length, length=20).write_progress(**MusicTemplates.CHARS),
+            value=MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS),
             inline=True
         ).add_field(
             name="จากช่อง",

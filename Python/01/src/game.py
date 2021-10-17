@@ -15,7 +15,7 @@ class game(commands.Cog):
     @commands.command(aliases=["ytt","youtube"])
     async def YouTube_Together(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "youtube")
@@ -24,7 +24,7 @@ class game(commands.Cog):
     @commands.command(aliases=["poker"])
     async def Poker_Night(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "poker")
@@ -33,7 +33,7 @@ class game(commands.Cog):
     @commands.command(aliases=["chess"])
     async def Chess_in_the_Park(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "chess")
@@ -42,7 +42,7 @@ class game(commands.Cog):
     @commands.command(aliases=["betrayal"])
     async def Betrayal_io(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "betrayal")
@@ -51,7 +51,7 @@ class game(commands.Cog):
     @commands.command(aliases=["fishing"])
     async def Fishington_io(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "fishing")
@@ -60,7 +60,7 @@ class game(commands.Cog):
     @commands.command(aliases=["letter-tile"])
     async def Letter_Tile(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "letter-tile")
@@ -69,7 +69,7 @@ class game(commands.Cog):
     @commands.command(aliases=["word-snack","word"])
     async def Word_Snack(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "word-snack")
@@ -78,7 +78,7 @@ class game(commands.Cog):
     @commands.command(aliases=["doodle-crew"])
     async def Doodle_Crew(self, ctx):
         try:
-            member_voice_channel = ctx.author.voice.channel
+            ctx.author.voice.channel
         except AttributeError:
             return await cant(self.client, ctx)
         link = await self.togetherControl.create_link(ctx.author.voice.channel.id, "doodle-crew")

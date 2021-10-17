@@ -47,7 +47,7 @@ class game(commands.Cog):
                 file_urls = list(map(lambda pic: pic["file_url"], res))
                 mycursor.execute("INSERT INTO rule34 (id, tags, pic) VALUES (%s, %s, %s)", (None, tag, json.dumps(file_urls)))
 
-        file_urls = random.sample(file_urls, len(file_urls))
+        random.sample(file_urls, len(file_urls))
 
         def generateEmbed(start):
             current = file_urls[start]
