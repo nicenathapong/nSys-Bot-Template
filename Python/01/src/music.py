@@ -275,7 +275,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         if not member.bot and after.channel is None:
             if not [m for m in before.channel.members if not m.bot]:
                 await self.get_player(member.guild).teardown()
-        elif member.bot and after.channel is None:
+        if member.bot and after.channel is None and member.id == self.client.user.id:
             await member.edit(nick=None)
 
     @wavelink.WavelinkMixin.listener()

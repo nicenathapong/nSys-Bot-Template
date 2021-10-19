@@ -682,7 +682,7 @@ class guild_settings(commands.Cog):
             if this_guild_settings[5] is None:
                 if mode == "on":
                     mycursor.execute(f"UPDATE `guilds` SET `ranking_exp` = '{json.dumps([])}' WHERE `guild_id` = '{ctx.guild.id}'")
-                    await ctx.reply(embed=discord.Embed(
+                    return await ctx.reply(embed=discord.Embed(
                         title=f"เปิดการใช้งาน Ranking Mode\nของดิส `{ctx.guild.name}` เรียบร้อยค่ะ!",
                         color=0x00ffff
                     ).set_author(
@@ -690,7 +690,6 @@ class guild_settings(commands.Cog):
                         icon_url=self.client.user.avatar_url,
                         url=config.author_url
                     ))
-                    return
                 if mode == "off":
                     return await ctx.reply(embed=discord.Embed(
                         title=f"ดูเหมือนว่าดิสนี้จะปิด Ranking mode อยู่แล้วนะคะ",
@@ -718,7 +717,7 @@ class guild_settings(commands.Cog):
                             database_empty += 1
                     if database_empty >= 7:
                         mycursor.execute(f"DELETE FROM `guilds` WHERE `guild_id` = '{ctx.guild.id}'")
-                    await ctx.reply(embed=discord.Embed(
+                    return await ctx.reply(embed=discord.Embed(
                         title=f"ปิดการใช้งาน Ranking Mode\nของดิส `{ctx.guild.name}` เรียบร้อยค่ะ!",
                         description="*ข้อมูล ranking_exp ทั้งหมดจะถูกล้าง*",
                         color=0x00ffff
@@ -727,14 +726,13 @@ class guild_settings(commands.Cog):
                         icon_url=self.client.user.avatar_url,
                         url=config.author_url
                     ))
-                    return
         else:
             if mode == "on":
                 mycursor.execute(
                     "INSERT INTO guilds (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player_channel_id, reactions_roles) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (None, str(ctx.guild.id), None, None, None, json.dumps([]), None, None, None, None)
                 )
-                await ctx.reply(embed=discord.Embed(
+                return await ctx.reply(embed=discord.Embed(
                     title=f"เปิดการใช้งาน Ranking Mode\nของดิส `{ctx.guild.name}` เรียบร้อยค่ะ!",
                     color=0x00ffff
                 ).set_author(
@@ -742,7 +740,6 @@ class guild_settings(commands.Cog):
                     icon_url=self.client.user.avatar_url,
                     url=config.author_url
                 ))
-                return
             if mode == "off":
                 return await ctx.reply(embed=discord.Embed(
                     title=f"ดูเหมือนว่าดิสนี้จะปิด Ranking mode อยู่แล้วนะคะ",

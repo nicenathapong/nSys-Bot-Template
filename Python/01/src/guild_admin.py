@@ -175,7 +175,7 @@ class guild_admin(commands.Cog):
         if member is None or name is None:
             return await ctx.reply(embed=discord.Embed(
                 title=f"โปรดระบุข้อมูลให้ครบถ้วนด้วยนะคะ",
-                description=f"เช่น `{get_prefix(self.client, ctx)}chnick @nicenathapong คนหล่อเท่`",
+                description=f"เช่น `{get_prefix(self.client, ctx)[0]}chnick @nicenathapong คนหล่อเท่`",
                 color=0x00ffff
             ).set_author(
                 name="ไม่สามารถดำเนินการได้ค่ะ!",

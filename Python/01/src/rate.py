@@ -22,8 +22,8 @@ class game(commands.Cog):
             url=config.author_url
         ))
         async with ctx.typing():
-            mycursor = self.client.mysql.cursor()
-            mycursor.execute("SELECT * FROM rule34")
+            mycursor = self.client.datacore.cursor()
+            mycursor.execute("SELECT * FROM `rule34`")
             all_rule34_tags = mycursor.fetchall()
             if tag is None:
                 if len(all_rule34_tags) > 0:

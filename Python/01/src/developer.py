@@ -65,7 +65,7 @@ class developer(commands.Cog):
     @commands.command()
     async def menuadd(self, ctx, *, menu):
         async with ctx.typing():
-            mycursor = self.client.mysql.cursor()
+            mycursor = self.client.datacore.cursor()
             mycursor.execute("SELECT * FROM `food`")
             all_database_menu = mycursor.fetchall()
             all_menu_only = list(map(lambda x: x[1] ,all_database_menu))
@@ -81,7 +81,7 @@ class developer(commands.Cog):
         ).set_image(
             url=random.choice(json.loads(myresult[2]))["url"]
         ).set_footer(
-            text=f"Client : {round(self.client.latency * 1000)}"
+            text=f"API response : {api_res[1]}ms"
         ))
 
 def setup(client):

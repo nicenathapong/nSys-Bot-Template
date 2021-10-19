@@ -5,6 +5,8 @@ import requests
 import json
 from src.functions import api
 from config import config
+from asyncio.exceptions import TimeoutError as ast
+from src.functions.main import get_prefix
 
 horoscope_res = [
     "แน่นอนอยู่แล้วค่า",
@@ -31,45 +33,26 @@ horoscope_res = [
 ]
 
 def convertdate(day, dayn, month, year):
-    if day == "Monday":
-        day = "จันทร์"
-    if day == "Tuesday":
-        day = "อังคาร"
-    if day == "Wednesday":
-        day = "พุธ"
-    if day == "Thursday":
-        day = "พฤหัสบดี"
-    if day == "Friday":
-        day = "ศุกร์"
-    if day == "Saturday":
-        day = "เสาร์"
-    if day == "Sunday":
-        day = "อาทิตย์"
+    if day == "Monday": day = "จันทร์"
+    if day == "Tuesday": day = "อังคาร"
+    if day == "Wednesday": day = "พุธ"
+    if day == "Thursday": day = "พฤหัสบดี"
+    if day == "Friday": day = "ศุกร์"
+    if day == "Saturday": day = "เสาร์"
+    if day == "Sunday": day = "อาทิตย์"
 
-    if month == "January":
-        month = "มกราคม"    
-    if month == "February":
-        month = "กุมภาพันธ์"    
-    if month == "March":
-        month = "มีนาคม"    
-    if month == "April":
-        month = "เมษายน"    
-    if month == "May":
-        month = "พฤษภาคม"    
-    if month == "June":
-        month = "มิถุนายน"    
-    if month == "July":
-        month = "กรกฎาคม"    
-    if month == "August":
-        month = "สิงหาคม"    
-    if month == "September":
-        month = "กันยายน"    
-    if month == "October":
-        month = "ตุลาคม"    
-    if month == "November":
-        month = "พฤศจิกายน"    
-    if month == "December":
-        month = "ธันวาคม"
+    if month == "January": month = "มกราคม"    
+    if month == "February": month = "กุมภาพันธ์"    
+    if month == "March": month = "มีนาคม"    
+    if month == "April": month = "เมษายน"    
+    if month == "May": month = "พฤษภาคม"    
+    if month == "June": month = "มิถุนายน"    
+    if month == "July": month = "กรกฎาคม"    
+    if month == "August": month = "สิงหาคม"    
+    if month == "September": month = "กันยายน"    
+    if month == "October": month = "ตุลาคม"    
+    if month == "November": month = "พฤศจิกายน"    
+    if month == "December": month = "ธันวาคม"
 
     date = f"วัน{day} ที่ {dayn} เดือน{month} ปี {year}"
     return date
@@ -80,97 +63,181 @@ class basic(commands.Cog):
 
     @commands.command(aliases=["h"])
     async def help(self, ctx):
-        await ctx.reply(embed=discord.Embed(
-            title="นี่คือคำสั่งทั้งหมดของบอทค่ะ!",
+
+        MainEmbed = discord.Embed(
+            title="สามารถดูคำสั่งทั้งหมดได้ที่เมนูด้านล่างเลยค่ะ",
             color=0x00ffff
         ).set_author(
             name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
-            icon_url=self.client.user.avatar_url
-        ).add_field(
-            name="basic",
-            value=
-                "`help`" + "\n" +
-                "`horoscope`" + "\n" +
-                "`covid`" + "\n" +
-                "`shake`" + "\n" +
-                "`menu`" + "\n" +
-                "`picture search`" + "\n" +
-                "`time`",
-            inline=True
-        ).add_field(
-            name="music",
-            value=
-                "`join`" + "\n" +
-                "`play`" + "\n" +
-                "`pause`" + "\n" +
-                "`resume`" + "\n" +
-                "`queue`" + "\n" +
-                "`nowplaying`" + "\n" +
-                "`volume`" + "\n" +
-                "`equalizer`" + "\n" +
-                "`loop`" + "\n" +
-                "`skip`" + "\n" +
-                "`skipto`" + "\n" +
-                "`previous`" + "\n" +
-                "`shuffle`" + "\n" +
-                "`leave`" + "\n" +
-                "`autoplay`" + "\n" +
-                "`playskip`" + "\n" +
-                "`forceskip`" + "\n" +
-                "`setup-musicroom`",
-            inline=True
-        ).add_field(
-            name="game",
-            value=
-                "`youtube`" + "\n" +
-                "`poker`" + "\n" +
-                "`chess`" + "\n" +
-                "`betrayal`" + "\n" +
-                "`fishing`" + "\n" +
-                "`letter-tile`" + "\n" +
-                "`word-snack`" + "\n" +
-                "`doodle-crew`",
-            inline=True
-        ).add_field(
-            name="rate",
-            value=
-                "`rule34`" + "\n" +
-                "`nhentai`",
-            inline=True
-        ).add_field(
-            name="guild settings",
-            value=
-                "`setprefix`" + "\n" +
-                "`welcome-message-add`" + "\n" +
-                "`welcome-message-remove`" + "\n" +
-                "`auto-voice-channel-add`" + "\n" +
-                "`auto-voice-channel-remove`" + "\n" +
-                "`reaction-role-add`" + "\n" +
-                "`reaction-role-remove`" + "\n" +
-                "`reaction-role-list`" + "\n" +
-                "`reaction-role-remove-all`" + "\n" +
-                "`ranking-on`" + "\n" +
-                "`ranking-off`",
-            inline=True
-        ).add_field(
-            name="developer",
-            value=
-                "`ping`" + "\n" +
-                "`botinfo`" + "\n" +
-                "`menuadd`",
-            inline=True
-        ).add_field(
-            name="guild admin",
-            value=
-                "`kick`" + "\n" +
-                "`ban`" + "\n" +
-                "`clear`" + "\n" +
-                "`edit-server-icon`" + "\n" +
-                "`restore-server-icon`" + "\n" +
-                "`change-guild-name`" + "\n" +
-                "`change-nickname`",
-            inline=True
-        ))
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ).set_image(
+            url="https://cdn.discordapp.com/attachments/848527683381100555/899618887497306112/nSys02.png"
+        )
+
+        BasicEmbed = discord.Embed(
+            title="นี่คือคำสั่งทั่วไปของบอทค่ะ",
+            description=
+                f"**{get_prefix(self.client, ctx)[0]}menu** - ไม่รู้จะกินอะไรดีใช่มะ ลองใช้คำสั่งนี้ดูสิคะ" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}horo** - อยากถามอะไรถามมาเลย ฉันจะทำนายให้คุณเอง!" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}shake** - เขย่าใครสักคน" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}ps** - ค้นหารูปภาพ" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}covid** - ดูสถานการณ์ Covid-19 ล่าสุดของไทย" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}time** - ดูเวลาตอนนี้" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}loo** - แปลภาษาไทยไปภาษาลู (555+)" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}tloo** - แปลภาษาลูมาภาษาไทย",
+            color=0x00ffff
+        ).set_author(
+            name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        )
+
+        MusicEmbed = discord.Embed(
+            title="นี่คือคำสั่งเพลงของบอทค่ะ",
+            description=
+                f"**{get_prefix(self.client, ctx)[0]}join**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}play**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}pause**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}resume**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}queue**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}nowplaying**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}loop**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}skip**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}skipto**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}previous**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}shuffle**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}leave**",
+            color=0x00ffff
+        ).set_author(
+            name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        )
+
+        GameEmbed = discord.Embed(
+            title="นี่คือคำสั่งในหมวดหมู่เกมค่ะ",
+            description=
+                f"**{get_prefix(self.client, ctx)[0]}youtube-together**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}betroyal**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}chess**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}betrayal**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}fishing**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}letter-tile**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}word-snack**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}doodle-crew**",
+            color=0x00ffff
+        ).set_author(
+            name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        )
+
+        RateEmbed = discord.Embed(
+            title="นี่คือคำสั่งในหมวดหมู่ 18+ ค่ะ",
+            description=
+                f"**{get_prefix(self.client, ctx)[0]}rule34**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}nhentai**",
+            color=0x00ffff
+        ).set_author(
+            name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        )
+
+        SettingsEmbed = discord.Embed(
+            title="นี่คือคำสั่งในหมวดหมู่การตั้งค่าเซิร์ฟเวอร์ค่ะ",
+            description=
+                f"**{get_prefix(self.client, ctx)[0]}setprefix**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}rmsetprefix**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}setjoinlog**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}rmsetjoinlog**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}addautovc**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}rmautovc**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}addreacrole**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}rmreacrole**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}reacrolelist**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}rmallreacrole**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}rankingsystem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}kick**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}ban**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}unban**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}edit-server-icon**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}restore-server-icon**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}edit-server-name**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}change-nickname**",
+            color=0x00ffff
+        ).set_author(
+            name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        )
+
+        DevEmbed = discord.Embed(
+            title="ในหมวดหมู่ผู้พัฒนาค่ะ",
+            description=
+                f"**{get_prefix(self.client, ctx)[0]}ping**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}botinfo**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}menuadd**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}menulist**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}menuremove**",
+            color=0x00ffff
+        ).set_author(
+            name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        )
+
+        Bot_admin_Embed = discord.Embed(
+            title="ในหมวดหมู่ผู้แอดมินบอทค่ะ",
+            description=
+                f"**{get_prefix(self.client, ctx)[0]}lorem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}lorem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}lorem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}lorem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}lorem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}lorem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}lorem**" + "\n"
+                f"**{get_prefix(self.client, ctx)[0]}lorem**",
+            color=0x00ffff
+        ).set_author(
+            name="สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        )
+
+        msg = await ctx.reply(embed=MainEmbed)
+        await msg.add_reaction("❤️")
+        await msg.add_reaction("🏠")
+        await msg.add_reaction("🎶")
+        await msg.add_reaction("🎮")
+        await msg.add_reaction("⚙️")
+        if ctx.author.id in config.owner_id:
+            await msg.add_reaction("👑")
+        def reac_check(r, u):
+            return msg.id == r.message.id and u != self.client.user and r.emoji in ["❤️", "🏠","🎶","🎮","⚙️","👑"] and u.id == ctx.author.id
+        while True:
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', timeout=1800, check=reac_check)
+                em = str(reaction.emoji)
+            except ast:
+                break
+
+            if user != self.client.user:
+                await msg.remove_reaction(emoji=em, member=user)
+
+            if em == "❤️":
+                await msg.edit(embed=MainEmbed)
+            if em == "🏠":
+                await msg.edit(embed=BasicEmbed)
+            if em == "🎶":
+                await msg.edit(embed=MusicEmbed)
+            if em == "🎮":
+                await msg.edit(embed=GameEmbed)
+            if em == "⚙️":
+                await msg.edit(embed=SettingsEmbed)
+            if em == "👑":
+                await msg.edit(embed=Bot_admin_Embed)
 
     @commands.command(aliases=["horo"])
     async def horoscope(self, ctx, *, question=None):
@@ -209,14 +276,15 @@ class basic(commands.Cog):
 
     @commands.command()
     async def covid(self, ctx):
-        r = requests.get("https://covid19.ddc.moph.go.th/api/Cases/today-cases-all")
-        data = json.loads(r.text)
+        async with ctx.typing():
+            r = requests.get("https://covid19.ddc.moph.go.th/api/Cases/today-cases-all")
+            data = json.loads(r.text)
 
-        new_case = "{:,}".format(data[0]['new_case'])
-        new_recovered = "{:,}".format(data[0]['new_recovered'])
-        total_recovered = "{:,}".format(data[0]['total_recovered'])
-        total_case = "{:,}".format(data[0]['total_case'])
-        new_death = "{:,}".format(data[0]['new_death'])
+            new_case = "{:,}".format(data[0]['new_case'])
+            new_recovered = "{:,}".format(data[0]['new_recovered'])
+            total_recovered = "{:,}".format(data[0]['total_recovered'])
+            total_case = "{:,}".format(data[0]['total_case'])
+            new_death = "{:,}".format(data[0]['new_death'])
 
         await ctx.reply(embed=discord.Embed(
             title=f"ติดเชื้อเพิ่มวันนี้ `{new_case}` คน",
@@ -294,7 +362,7 @@ class basic(commands.Cog):
 
     @commands.command()
     async def menu(self, ctx):
-        mycursor = self.client.mysql.cursor()
+        mycursor = self.client.datacore.cursor()
         mycursor.execute("SELECT * FROM `food`")
         all_database_menu = mycursor.fetchall()
         random_menu = random.choice(all_database_menu)
