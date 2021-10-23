@@ -290,7 +290,6 @@ module.exports = [
         async run(client, message) {
             try {
                 const res = await api.covid()
-                console.log(res.data)
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -298,19 +297,20 @@ module.exports = [
                             name: "นี่คือสถานการณ์โควิดล่าสุดของไทยวันนี้ค่ะ",
                             url: "https://covid19.ddc.moph.go.th/api/Cases/today-cases-all"
                         },
-                        title: `ติดเชื้อเพิ่มวันนี้ \`${res.data[0].new_case}\` คน`,
+                        title: `ติดเชื้อเพิ่มวันนี้ \`${res.data[0].new_case.toLocaleString()}\` คน`,
                         fields: [
                             {
-                                name: `หายป่วยวันนี้ \`${res.data[0].new_recovered}\` คน`,
+                                name: `หายป่วยวันนี้ \`${res.data[0].new_recovered.toLocaleString()}\` คน`,
                                 value:
-                                    `หายป่วยสะสม \`${res.data[0].total_recovered}\` คน` + "\n" +
-                                    `ป่วยสะสม \`${res.data[0].total_case}\` คน` + "\n" +
-                                    `เสียชีวิตเพิ่ม \`${res.data[0].new_death}\` คน` + "\n"
+                                    `หายป่วยสะสม \`${res.data[0].total_recovered.toLocaleString()}\` คน` + "\n" +
+                                    `ป่วยสะสม \`${res.data[0].total_case.toLocaleString()}\` คน` + "\n" +
+                                    `เสียชีวิตเพิ่ม \`${res.data[0].new_death.toLocaleString()}\` คน` + "\n"
                             }
                         ],
                         footer: {
-                            text: `อัพเดตล่าสุด ${res.data[0].update_date} | API response : ${res.ms} ms`
-                        }
+                            text: `อัพเดตล่าสุด ${res.data[0].update_date} | API response : ${res.ms.toLocaleString()} ms`
+                        },
+                        color: 0x00ffff
                     })
                 ]})
             } catch (e) {

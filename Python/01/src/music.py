@@ -15,6 +15,7 @@ from asyncio.exceptions import TimeoutError as ast
 import math
 import aiohttp
 from multibar import MusicBar, MusicTemplates
+import requests
 
 URL_REGEX = r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*"
 LYRICS_URL = "https://some-random-api.ml/lyrics?title="
@@ -276,7 +277,10 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             if not [m for m in before.channel.members if not m.bot]:
                 await self.get_player(member.guild).teardown()
         if member.bot and after.channel is None and member.id == self.client.user.id:
-            await member.edit(nick=None)
+            try:
+                await member.edit(nick=None)
+            except:
+                pass
 
     @wavelink.WavelinkMixin.listener()
     async def on_node_ready(self, node: wavelink.Node):
@@ -286,7 +290,10 @@ class music(commands.Cog, wavelink.WavelinkMixin):
     async def on_track_start(self, node: wavelink.Node, payload: wavelink.events.TrackStart):
         guild = self.client.get_guild(payload.player.guild_id)
         member = guild.get_member(self.client.user.id)
-        await member.edit(nick="🎶 {0}".format(payload.player.queue.current_track.title[:30]))
+        try:
+            await member.edit(nick="🎶 {0}".format(payload.player.queue.current_track.title[:30]))
+        except:
+            pass
 
     @wavelink.WavelinkMixin.listener("on_track_end")
     async def on_player_stop(self, node, payload):
@@ -296,7 +303,10 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             await payload.player.advance()
         guild = self.client.get_guild(payload.player.guild_id)
         member = guild.get_member(self.client.user.id)
-        await member.edit(nick=None)
+        try:
+            await member.edit(nick=None)
+        except:
+            pass
 
     async def cog_check(self, ctx):
         if isinstance(ctx.channel, discord.DMChannel):
@@ -379,8 +389,9 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             ))
 
         query = query.strip("<>")
-        if not re.match(URL_REGEX, query):
-            query = f"ytsearch:{query}"
+        # if not re.match(URL_REGEX, query):
+        #     query = f"ytsearch:{query}"
+        if not isUrl(query): query = f"ytsearch:{query}"
         tracks = await self.wavelink.get_tracks(query)
         if not tracks:
             return await ctx.reply(embed=discord.Embed(
@@ -906,7 +917,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                         name=
                             "ขณะนี้กำลังเล่นเพลง\n" +
                             f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})\n" +
-                            MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS) + "\n"
+                            str(MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS)) + "\n"
                             f"{player.queue.current_track.title}",
                         value=f"*{convertMs(player.queue.current_track.length)}* | {player.queue.current_track.author}",
                         inline=False
@@ -1513,3 +1524,10 @@ def setup(client):
 
 def convertMs(ms):
     return f"{int(divmod(ms, 60000)[0])}:{round(divmod(ms, 60000)[1]/1000):02}"
+
+def isUrl(url):
+    try:
+        response = requests.get(url)
+        return True
+    except requests.ConnectionError as exception:
+        return False

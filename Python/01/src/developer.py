@@ -39,11 +39,11 @@ class developer(commands.Cog):
             inline=True
         ).add_field(
             name="Member count",
-            value="{0} members".format("{:,}".format(sum(list(map(lambda g: len(g.channels), self.client.guilds))))),
+            value="{0} members".format("{:,}".format(sum(list(map(lambda g: len(list(filter(lambda m: not m.bot, g.members))), self.client.guilds))))),
             inline=True
         ).add_field(
             name="Channel count",
-            value="{0} channels".format("{:,}".format(sum(list(map(lambda g: len(list(filter(lambda m: not m.bot, g.members))), self.client.guilds))))),
+            value="{0} channels".format("{:,}".format(sum(list(map(lambda g: len(g.channels), self.client.guilds))))),
             inline=True
         ).add_field(
             name="CPU Usage",

@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import os
 from src.functions import database, main
 from config import config
@@ -27,23 +27,19 @@ for file in os.listdir("./src"):
 
 database.connect_to_database(client)
 
-async def activity(client, index=0):
-    try:
-        statuses = [
-            "{0}help | {1} servers!".format(config.prefix, "{:,}".format(len(client.guilds))),
-            "{0}help | {1} channels!".format(config.prefix, "{:,}".format(sum(list(map(lambda g: len(g.channels), client.guilds))))),
-            "{0}help | {1} members!".format(config.prefix, "{:,}".format(sum(list(map(lambda g: len(list(filter(lambda m: not m.bot, g.members))), client.guilds)))))
-        ]
-        await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=statuses[index]))
-        index += 1
-        if index == 3: index = 0
-        await asyncio.sleep(10)
-        await activity(client, index)
-    except:
-        index += 1
-        if index == 3: index = 0
-        await asyncio.sleep(10)
-        await activity(client, index)
+@tasks.loop(seconds=10)
+async def activity(client):
+    statuses = [
+        "{0}help | {1} servers!".format(config.prefix, "{:,}".format(len(client.guilds))),
+        "{0}help | {1} channels!".format(config.prefix, "{:,}".format(sum(list(map(lambda g: len(g.channels), client.guilds))))),
+        "{0}help | {1} members!".format(config.prefix, "{:,}".format(sum(list(map(lambda g: len(list(filter(lambda m: not m.bot, g.members))), client.guilds)))))
+    ]
+    try: index = int(open("./activity_index.txt", "r").read())
+    except: index = 0
+    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=statuses[index]))
+    index += 1
+    if index == 3: index = 0
+    open("./activity_index.txt", "w").write(str(index))
 
 @client.event
 async def on_shard_ready(shard_id):
@@ -56,7 +52,7 @@ async def on_shard_ready(shard_id):
 
 @client.event
 async def on_ready():
-    await activity(client)
+    activity.start(client)
 
 @client.event
 async def on_command_completion(ctx):

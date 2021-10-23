@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from config import config
 import asyncio
+import os
 
 async def check(self, ctx):
     mycursor = self.client.mysql.cursor()
@@ -26,6 +27,20 @@ class bot_admin(commands.Cog):
     @commands.command()
     async def reload(self, ctx):
         if await check(self, ctx): return
+        for file in os.listdir("./src"):
+            if file.endswith(".py"):
+                self.client.unload_extension(f"src.{file[:-3]}")
+                self.client.load_extension(f"src.{file[:-3]}")
+                print(f"[System] reloading extension {file[:-3]} finish!")
+
+        await ctx.reply(embed=discord.Embed(
+            title=f"รีโหลดบอทเรียบร้อยค่ะ",
+            color=0x00ffff
+        ).set_author(
+            name="ดำเนินการเรียบร้อยค่ะ!",
+            icon_url=self.client.user.avatar_url,
+            url=config.author_url
+        ))
 
     @commands.command()
     async def menulist(self, ctx):
