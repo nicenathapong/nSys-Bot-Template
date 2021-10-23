@@ -378,7 +378,7 @@ class basic(commands.Cog):
     async def picsearch(self, ctx, *, word=None):
         if word is None: return await ctx.reply(embed=discord.Embed(
             title=f"โปรดระบุคำที่ต้องการจะให้ค้นหาด้วยนะคะ",
-            description="เช่น `{0}picsearch พิซซ่า`".format(config["prefix"]),
+            description="เช่น `{0}picsearch พิซซ่า`".format(config.prefix),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -405,7 +405,7 @@ class basic(commands.Cog):
     async def loo(self, ctx, word=None):
         if word is None: return await ctx.reply(embed=discord.Embed(
             title=f"โปรดระบุคำที่ต้องการจะให้ค้นแปลด้วยนะคะ",
-            description="เช่น `{0}loo หลับ`".format(config["prefix"]),
+            description="เช่น `{0}loo หลับ`".format(config.prefix),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",
@@ -426,7 +426,7 @@ class basic(commands.Cog):
     async def tloo(self, ctx, word=None):
         if word is None: return await ctx.reply(embed=discord.Embed(
             title=f"โปรดระบุคำที่ต้องการจะให้ค้นแปลด้วยนะคะ",
-            description="เช่น `{0}tloo สับหลุบ`".format(config["prefix"]),
+            description="เช่น `{0}tloo สับหลุบ`".format(config.prefix),
             color=0x00ffff
         ).set_author(
             name="ไม่สามารถดำเนินการได้ค่ะ!",

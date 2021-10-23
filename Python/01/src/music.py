@@ -389,9 +389,8 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             ))
 
         query = query.strip("<>")
-        # if not re.match(URL_REGEX, query):
-        #     query = f"ytsearch:{query}"
-        if not isUrl(query): query = f"ytsearch:{query}"
+        if not re.match(URL_REGEX, query):
+            query = f"ytsearch:{query}"
         tracks = await self.wavelink.get_tracks(query)
         if not tracks:
             return await ctx.reply(embed=discord.Embed(
@@ -412,7 +411,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                 embed = discord.Embed(
                     title=tracks.data["playlistInfo"]["name"],
                     url=query,
-                    description=f"เพิ่มเพลงจากเพลย์ลิสต์ทั้งหมด {len(tracks.tracks)} ไปยังคิว เรียบร้อยค่ะ!",
+                    description=f"เพิ่มเพลงจากเพลย์ลิสต์ทั้งหมด {len(tracks.tracks)} เพลง ไปยังคิวเรียบร้อยค่ะ!",
                     color=0x00ffff
                 ).set_thumbnail(
                     url=current[0].thumb
@@ -458,29 +457,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                     if i == math.floor(len(tracks.tracks) / 10) * 10: i = (math.floor(len(tracks.tracks) / 10) * 10) - 10
                     i += 10
                     await embedMessage.edit(embed=generateEmbed(i))
-
-        elif len(tracks) == 1:
-            await ctx.reply(embed=discord.Embed(
-                title=tracks[0].title,
-                url=tracks[0].uri,
-                description="เพิ่มเพลงใหม่ไปยังคิว เรียบร้อยค่ะ!",
-                color=0x00ffff
-            ).set_author(
-                name="ดำเนินการเรียบร้อยค่ะ!",
-                icon_url=self.client.user.avatar_url,
-                url=config.author_url
-            ).set_thumbnail(
-                url=tracks[0].thumb
-            ).add_field(
-                name="จากช่อง",
-                value="`{0}`".format(tracks[0].author),
-                inline=True
-            ).add_field(
-                name="ระยะเวลา",
-                value="`{0}`".format("STREAM" if tracks[0].is_stream else convertMs(tracks[0].length)),
-                inline=True
-            ))
-        else: # search
+        else:
             await ctx.reply(embed=discord.Embed(
                 title=tracks[0].title,
                 url=tracks[0].uri,

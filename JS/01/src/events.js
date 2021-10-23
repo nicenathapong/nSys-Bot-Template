@@ -5,6 +5,7 @@ module.exports = [
     {
         name: "ready",
         async run(client) {
+            await client.manager.init(client.user.id)
             console.log(
                 "\n---------------------------------------------" + "\n" +
                 `nSys is starting up! | Cluster ${client.cluster.id}` + "\n" +

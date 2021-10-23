@@ -23,6 +23,12 @@ module.exports = [
                     label: "ทั่วไป",
                     customId: "Basic"
                 })
+                const MusicButton = new MessageButton({
+                    style: 'SECONDARY',
+                    emoji: "🎵",
+                    label: "เพลง",
+                    customId: "Music"
+                })
 
                 const MainEmbed = new MessageEmbed({
                     author: {
@@ -36,25 +42,35 @@ module.exports = [
                     },
                     color: 0x00ffff
                 })
-                const BasicEmbed = new MessageEmbed({
-                    author: {
-                        icon_url: client.user.avatarURL(),
-                        name: "นี่คือคำสั่งทั่วไปของบอทค่ะ!",
-                        url: config.embed_author_url
-                    },
-                    description: client.commands.filter(cm => cm.category === "basic").map(cm => `**${get_prefix(client, message) + cm.name}** - ${cm.information}`).join("\n"),
-                    color: 0x00ffff
-                })
+                console.log(client)
 
-                const msg = await message.loading.edit({embeds:[MainEmbed], components:[new MessageActionRow({components: [MainButton, BasicButton]})]})
+                function generateEmbed(category) {
+                    let word = client.user.username
+                    if (category === "basic") word = "นี่คือคำสั่งทั่วไปของบอทค่ะ!"
+                    if (category === "music") word = "นี่คือคำสั่งในหมวดหมู่เพลงของบอทค่ะ"
+                    return new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: word,
+                            url: config.embed_author_url
+                        },
+                        description: client.commands.filter(cm => cm.category === category).map(cm => `**${get_prefix(client, message) + cm.name}** - ${cm.information}`).join("\n"),
+                        color: 0x00ffff
+                    })
+                }
+                
+                const components = [new MessageActionRow({components: [MainButton, BasicButton, MusicButton]})]
+
+                const msg = await message.loading.edit({embeds:[MainEmbed], components: components})
                 
                 const collector = msg.createMessageComponentCollector({
                     filter: ({ user }) => user.id === message.author.id, time: 30 * 60000
                 })
 
                 collector.on("collect", interaction => {
-                    if (interaction.customId === "Main") interaction.update({embeds:[MainEmbed], components:[new MessageActionRow({components: [MainButton, BasicButton]})]})
-                    if (interaction.customId === "Basic") interaction.update({embeds:[BasicEmbed], components:[new MessageActionRow({components: [MainButton, BasicButton]})]})
+                    if (interaction.customId === "Main") interaction.update({embeds:[MainEmbed], components: components})
+                    if (interaction.customId === "Basic") interaction.update({embeds:[generateEmbed("basic")], components: components})
+                    if (interaction.customId === "Music") interaction.update({embeds:[generateEmbed("music")], components: components})
                 })
 
             } catch (e) {
@@ -453,7 +469,7 @@ function get_menu_random(client) {
             } else {
                 resolve({
                     menu: "กระเพราะหมูกรอบ",
-                    value: '[{url: "https://cdn.discordapp.com/attachments/850819315745947719/901123291421495316/97410838_711254099635380_4306379715595206656_n.png",source: "https://m.facebook.com/ReviewMaiYood/posts/711257319635058"}]'
+                    value: '[{url: "https://cdn.discordapp.com/attachments/850819315745947719/901123291421495316/97410838_711254099635380_4306379715595206656_n.png", source: "https://m.facebook.com/ReviewMaiYood/posts/711257319635058"}]'
                 })
             }
         })
