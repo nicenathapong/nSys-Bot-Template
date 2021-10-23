@@ -10,7 +10,7 @@ module.exports = [
             try {
                 
             } catch (e) {
-                error_log(message, e)
+                error_log(e, client, message)
             }
         }
     },
@@ -21,7 +21,7 @@ module.exports = [
             try {
                 
             } catch (e) {
-                error_log(message, e)
+                error_log(e, client, message)
             }
         }
     }

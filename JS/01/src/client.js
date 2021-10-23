@@ -40,24 +40,24 @@ client.datacore = mysql.createConnection(config.core_database)
 function connect_to_database(client) {
     client.mysql.connect((err) => {
         if (err) {
-            console.log("[self_db] can't connect to database.", err)
+            console.log(`[cluster ${client.cluster.id}] [self_db] can't connect to database.`, err)
             connect_to_database(client)
         }
-        console.log(`[self_db] [cluster ${client.cluster.id}] connect to database finish!`)
+        console.log(`[cluster ${client.cluster.id}] [self_db] connect to database finish!`)
     })
     client.datacore.connect((err) => {
         if (err) {
-            console.log("[core_db] can't connect to database.", err)
+            console.log(`[cluster ${client.cluster.id}] [core_db] can't connect to database.`, err)
             connect_to_database(client)
         }
-        console.log(`[core_db] [cluster ${client.cluster.id}] connect to database finish!`)
+        console.log(`[cluster ${client.cluster.id}] [core_db] connect to database finish!`)
     })
     client.mysql.on("error", (err) => {
-        console.log("[self_db] database error.", err)
+        console.log(`[cluster ${client.cluster.id}] [self_db] database error.`, err)
         connect_to_database(client)
     })
     client.datacore.on("error", (err) => {
-        console.log("[core_db] database error.", err)
+        console.log(`[cluster ${client.cluster.id}] [core_db] database error.`, err)
         connect_to_database(client)
     })
 }
@@ -76,4 +76,4 @@ fs.readdirSync("./src/commands").forEach(commandFile => {
     console.log(`[cluster ${client.cluster.id}] Loading extension [${commandFile.replace(".js","")}] finish!`)
 })
 
-client.login(require("../config").token)
+client.login(config.token)
