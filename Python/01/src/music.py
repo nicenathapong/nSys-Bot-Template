@@ -893,7 +893,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
                     embed.add_field(
                         name=
                             "ขณะนี้กำลังเล่นเพลง\n" +
-                            f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})\n" +
+                            f"{convertMs(player.position)} / {convertMs(player.queue.current_track.length)}\n" +
                             str(MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS)) + "\n"
                             f"{player.queue.current_track.title}",
                         value=f"*{convertMs(player.queue.current_track.length)}* | {player.queue.current_track.author}",
@@ -940,7 +940,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
             ).set_thumbnail(
                 url=player.queue.current_track.thumb
             ).add_field(
-                name=f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})",
+                name=f"{convertMs(player.position)} / {convertMs(player.queue.current_track.length)}",
                 value=MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS),
                 inline=True
             ).add_field(
@@ -978,6 +978,17 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         if volume is None:
             return await ctx.reply(embed=discord.Embed(
                 title=f"โปรดระบุระดับเสียงที่ต้องการปรับด้วยนะคะ",
+                description="เช่น `{0}vol 50`".format(get_prefix(self.client, ctx)[0]),
+                color=0x00ffff
+            ).set_author(
+                name="ไม่สามารถดำเนินการได้ค่ะ!",
+                icon_url=self.client.user.avatar_url,
+                url=config.author_url
+            ))
+
+        if not volume.isnumeric():
+            return await ctx.reply(embed=discord.Embed(
+                title=f"โปรดระบุระดับเสียงที่ต้องการปรับให้ถูกต้องด้วยนะคะ",
                 description="เช่น `{0}vol 50`".format(get_prefix(self.client, ctx)[0]),
                 color=0x00ffff
             ).set_author(
@@ -1261,7 +1272,7 @@ class music(commands.Cog, wavelink.WavelinkMixin):
         ).set_thumbnail(
             url=player.queue.current_track.thumb
         ).add_field(
-            name=f"({convertMs(player.position)}/{convertMs(player.queue.current_track.length)})",
+            name=f"{convertMs(player.position)} / {convertMs(player.queue.current_track.length)}",
             value=MusicBar(player.position, player.queue.current_track.length, length=40).write_progress(**MusicTemplates.CHARS),
             inline=True
         ).add_field(

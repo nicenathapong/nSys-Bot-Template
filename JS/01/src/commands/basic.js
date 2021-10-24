@@ -42,7 +42,6 @@ module.exports = [
                     },
                     color: 0x00ffff
                 })
-                console.log(client)
 
                 function generateEmbed(category) {
                     let word = client.user.username
