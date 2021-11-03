@@ -1,7 +1,5 @@
 const { MessageEmbed , MessageButton, MessageActionRow, Message } = require('discord.js')
-const config = require("../../config")
-const { error_log , random_choice , get_prefix } = require("../functions/main")
-const api = require("../functions/api")
+const { readdirSync } = require('fs')
 
 module.exports = [
     {
@@ -11,34 +9,74 @@ module.exports = [
         information: "หน้าช่วยเหลือของบอท",
         async run(client, message) {
             try {
-                const MainButton = new MessageButton({
+                const homeButton = new MessageButton({
                     style: 'SUCCESS',
                     emoji: "⚓",
                     label: "หน้าหลัก",
-                    customId: "Main"
+                    customId: "home"
                 })
-                const BasicButton = new MessageButton({
+                const basicButton = new MessageButton({
                     style: 'SECONDARY',
                     emoji: "🏠",
                     label: "ทั่วไป",
-                    customId: "Basic"
+                    customId: "basic"
                 })
-                const MusicButton = new MessageButton({
+                const musicButton = new MessageButton({
                     style: 'SECONDARY',
                     emoji: "🎵",
                     label: "เพลง",
-                    customId: "Music"
+                    customId: "music"
+                })
+                const gameButton = new MessageButton({
+                    style: 'SECONDARY',
+                    emoji: "🎮",
+                    label: "เกม",
+                    customId: "game"
+                })
+                const guild_settingsButton = new MessageButton({
+                    style: 'SECONDARY',
+                    emoji: "⚙️",
+                    label: "ตั้งค่า",
+                    customId: "guild_settings"
+                })
+                const developerButton = new MessageButton({
+                    style: 'SECONDARY',
+                    emoji: "🧑‍💻",
+                    label: "ผู้พัฒนา",
+                    customId: "developer"
+                })
+                const guild_adminButton = new MessageButton({
+                    style: 'SECONDARY',
+                    emoji: "🔒",
+                    label: "แอดมินดิส",
+                    customId: "guild_admin"
+                })
+                const bot_adminButton = new MessageButton({
+                    style: 'SECONDARY',
+                    emoji: "⚓",
+                    label: "แอดมินบอท",
+                    customId: "bot_admin"
                 })
 
-                const MainEmbed = new MessageEmbed({
+                console.log(message.author.id)
+
+                const components1 = new MessageActionRow({components: [homeButton, basicButton, musicButton]})
+                const components2 = new MessageActionRow({components: [
+                    gameButton,
+                    guild_settingsButton,
+                    guild_adminButton
+                ]})
+                if (client.function.main.isAdmin(client, message.author.id)) components2.components.push(bot_adminButton)
+
+                const mainEmbed = new MessageEmbed({
                     author: {
                         icon_url: client.user.avatarURL(),
                         name: "สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?",
-                        url: config.embed_author_url
+                        url: client.config.embed_author_url
                     },
                     title: "สามารถดูคำสั่งทั้งหมดได้ที่เมนูด้านล่างเลยค่ะ",
                     image: {
-                        url: "https://cdn.discordapp.com/attachments/874955958718201887/899627468200230962/nSys.png"
+                        url: client.config.help_image
                     },
                     color: 0x00ffff
                 })
@@ -47,33 +85,33 @@ module.exports = [
                     let word = client.user.username
                     if (category === "basic") word = "นี่คือคำสั่งทั่วไปของบอทค่ะ!"
                     if (category === "music") word = "นี่คือคำสั่งในหมวดหมู่เพลงของบอทค่ะ"
+                    if (category === "game") word = "นี่คือคำสั่งในหมวดหมู่เกมค่ะ"
+                    if (category === "guild_settings") word = "นี่คือคำสั่งในหมวดหมู่เซิร์ฟเวอร์ค่ะ"
+                    if (category === "developer") word = "นี่คือคำสั่งในหมวดหมู่ผู้พัฒนาค่ะ"
+                    if (category === "guild_admin") word = "นี่คือคำสั่งในหมวดหมู่แอดมินเซิร์ฟเวอร์ค่ะ"
+                    if (category === "bot_admin") word = "นี่คือคำสั่งในหมวดหมู่แอดมินของบอทค่ะ"
                     return new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: word,
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
-                        description: client.commands.filter(cm => cm.category === category).map(cm => `**${get_prefix(client, message) + cm.name}** - ${cm.information}`).join("\n"),
+                        description: client.commands.filter(cm => cm.category === category).map(cm => `**${client.function.main.get_prefix(client, message) + cm.name}** - ${cm.information}`).join("\n"),
                         color: 0x00ffff
                     })
                 }
-                
-                const components = [new MessageActionRow({components: [MainButton, BasicButton, MusicButton]})]
 
-                const msg = await message.loading.edit({embeds:[MainEmbed], components: components})
-                
-                const collector = msg.createMessageComponentCollector({
+                (await message.loading.edit({embeds:[mainEmbed], components: [components1, components2]})).createMessageComponentCollector({
                     filter: ({ user }) => user.id === message.author.id, time: 30 * 60000
-                })
-
-                collector.on("collect", interaction => {
-                    if (interaction.customId === "Main") interaction.update({embeds:[MainEmbed], components: components})
-                    if (interaction.customId === "Basic") interaction.update({embeds:[generateEmbed("basic")], components: components})
-                    if (interaction.customId === "Music") interaction.update({embeds:[generateEmbed("music")], components: components})
+                }).on("collect", interaction => {
+                    if (interaction.customId === "home") interaction.update({embeds: [mainEmbed], components: [components1, components2]})
+                    readdirSync("./src/commands").map(f => f.replace(".js", "")).forEach(category => {
+                        if (interaction.customId === category) interaction.update({embeds:[generateEmbed(category)], components: [components1, components2]})
+                    })
                 })
 
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -89,7 +127,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "คุณต้องระบุคำถามที่จะถามด้วยนะคะ",
                         color: 0x00ffff
@@ -108,7 +146,7 @@ module.exports = [
                             },
                             {
                                 name: 'คำตอบ',
-                                value: random_choice([
+                                value: client.function.main.random_choice([
                                     "แน่นอนอยู่แล้วค่า",
                                     "ก็น่าจะเป็นอย่างนั้นนะคะ",
                                     "โดยไม่มีข้อกังขาเลยค่ะ!",
@@ -137,7 +175,7 @@ module.exports = [
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -149,7 +187,7 @@ module.exports = [
         async run(client, message) {
             try {
                 const menu = await get_menu_random(client)
-                const pic = random_choice(JSON.parse(menu.pic))
+                const pic = client.function.main.random_choice(JSON.parse(menu.pic))
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -165,7 +203,7 @@ module.exports = [
                 ]})
 
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -180,7 +218,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "โปรดระบุผู้ใช้ที่ต้องการจะให้ Shake ด้วยนะคะ",
                         color: 0x00ffff
@@ -193,7 +231,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: `ไม่สามารถ Shake ผู้ใช้ที่เป็นบอทได้นะคะ`,
                         color: 0x00ffff
@@ -207,7 +245,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: `\`${member.user.username}#${member.user.discriminator}\` เหมือนจะไม่ได้อยู่ในช่องเสียงนะคะ`,
                         color: 0x00ffff
@@ -226,7 +264,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "กำลังเขย่าผู้ใช้..",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: `กำลังเขย่า \`${member.user.username}#${member.user.discriminator}\``,
                         color: 0x00ffff
@@ -243,7 +281,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "เขย่าผู้ใช้ เรียบร้อยค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: `เขย่า \`${member.user.username}#${member.user.discriminator}\` เรียบร้อยค่ะ!`,
                         color: 0x00ffff
@@ -251,13 +289,13 @@ module.exports = [
                 ]})
 
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
     {
         name: "picsearch",
-        aliases: ["ps"],
+        aliases: ["pic"],
         category: "basic",
         information: "ค้นหารูปภาพ",
         async run(client, message, args) {
@@ -267,20 +305,20 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "โปรดระบุคำที่ต้องการจะให้ค้นหาด้วยนะคะ",
-                        description: `เช่น \`${get_prefix(client, message)}ps พิซซ่า\``,
+                        description: `เช่น \`${client.function.api.get_prefix(client, message)}ps พิซซ่า\``,
                         color: 0x00ffff
                     })
                 ]})
-                const res = await api.getimgurls(args.join(" "), 3)
+                const res = await client.function.api.getimgurls(args.join(" "), 3)
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: `นี่คือผลการค้นหาของ "${args.join(" ")}" ค่ะ!`,
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: res.data[0].title,
                         url: res.data[0].source,
@@ -294,7 +332,7 @@ module.exports = [
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -304,7 +342,7 @@ module.exports = [
         information: "ดูสถานการณ์ Covid-19 ล่าสุดของไทย",
         async run(client, message) {
             try {
-                const res = await api.covid()
+                const res = await client.function.api.covid()
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -329,7 +367,7 @@ module.exports = [
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -357,7 +395,7 @@ module.exports = [
                             } นาที ${
                                 String(today.getSeconds()).length < 2 ? "0" + today.getSeconds() : today.getSeconds()
                             } วินาที ค่ะ!`,
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         description: `${
                             today.getDate() + '/' +
@@ -376,7 +414,7 @@ module.exports = [
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -391,14 +429,14 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "โปรดระบุคำที่ต้องการจะให้แปลด้วยนะคะ",
-                        description: `เช่น \`${get_prefix(client, message)}loo หลับ\``,
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}loo หลับ\``,
                         color: 0x00ffff
                     })
                 ]})
-                const res = await api.loo_translate(args.join(" "), "thai2loo")
+                const res = await client.function.api.loo_translate(args.join(" "), "thai2loo")
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -415,7 +453,7 @@ module.exports = [
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -430,14 +468,14 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "โปรดระบุคำที่ต้องการจะให้แปลด้วยนะคะ",
-                        description: `เช่น \`${get_prefix(client, message)}tloo สับหลุบ\``,
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}tloo สับหลุบ\``,
                         color: 0x00ffff
                     })
                 ]})
-                const res = await api.loo_translate(args.join(" "), "loo2thai")
+                const res = await client.function.api.loo_translate(args.join(" "), "loo2thai")
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -454,7 +492,7 @@ module.exports = [
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     }
@@ -464,7 +502,7 @@ function get_menu_random(client) {
     return new Promise((resolve, reject) => {
         client.datacore.query("SELECT * FROM `food`", (err, res) => {
             if (res.length > 0) {
-                resolve(random_choice(res))
+                resolve(client.function.main.random_choice(res))
             } else {
                 resolve({
                     menu: "กระเพราะหมูกรอบ",

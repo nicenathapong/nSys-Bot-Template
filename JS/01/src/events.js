@@ -1,5 +1,6 @@
 const { MessageEmbed } = require('discord.js')
 const config = require("../config")
+const color = require('colors')
 
 module.exports = [
     {
@@ -7,10 +8,10 @@ module.exports = [
         async run(client) {
             await client.manager.init(client.user.id)
             console.log(
-                "\n---------------------------------------------" + "\n" +
-                `nSys is starting up! | Cluster ${client.cluster.id}` + "\n" +
-                `Login as ${client.user.tag} | ${client.user.id}` + "\n" +
-                "---------------------------------------------"
+                "\n---------------------------------------------".yellow + "\n" +
+                `nSystem bot is starting up! | Cluster ${client.cluster.id}`.yellow + "\n" +
+                `Login as ${client.user.tag} | ${client.user.id}`.yellow + "\n" +
+                "---------------------------------------------".yellow
             )
         }
     },

@@ -2,7 +2,7 @@ const Cluster = require('discord-hybrid-sharding')
 const config = require("./config")
 
 const manager = new Cluster.Manager("./src/client.js", {
-    totalShards: config.totalShards,
+    totalShards: config.totalClusters,
     totalClusters: config.totalClusters,
     mode: "process",
     token: config.token,

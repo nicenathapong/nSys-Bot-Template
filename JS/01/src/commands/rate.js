@@ -1,6 +1,5 @@
 const { MessageEmbed } = require('discord.js')
 const config = require("../../config")
-const { error_log } = require("../functions/main")
 
 module.exports = [
     {
@@ -10,7 +9,7 @@ module.exports = [
             try {
                 
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -21,7 +20,7 @@ module.exports = [
             try {
                 
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     }

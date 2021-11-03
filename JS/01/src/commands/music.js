@@ -1,7 +1,4 @@
 const { MessageEmbed , MessageButton , MessageActionRow} = require('discord.js')
-const config = require("../../config")
-const { error_log, get_prefix } = require("../functions/main")
-const music = require("../functions/music")
 
 const backButton = new MessageButton({
     style: 'SECONDARY',
@@ -30,7 +27,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ไม่พบช่องเสียงที่คุณอยู่ค่ะ",
                         color: 0x00ffff
@@ -40,13 +37,14 @@ module.exports = [
                 if (!player) {
                     player = await client.manager.create(message.guild.id)
                     await player.connect(channel.id, { selfDeaf: true })
-                    music.player_events(client, message, player)
+                    player.setVolume(50)
+                    client.function.music.player_events(client, message, player)
                     return message.loading.edit({embeds:[
                         new MessageEmbed({
                             author: {
                                 icon_url: client.user.avatarURL(),
                                 name: "ดำเนินการเรียบร้อยค่ะ!",
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: `เชื่อมต่อไปยังช่องเสียง \`${channel.name}\` เรียบร้อยค่ะ!`,
                             color: 0x00ffff
@@ -61,7 +59,7 @@ module.exports = [
                                 author: {
                                     icon_url: client.user.avatarURL(),
                                     name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                                    url: config.embed_author_url
+                                    url: client.config.embed_author_url
                                 },
                                 title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
                                 description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
@@ -75,7 +73,7 @@ module.exports = [
                                 author: {
                                     icon_url: client.user.avatarURL(),
                                     name: "ดำเนินการเรียบร้อยค่ะ!",
-                                    url: config.embed_author_url
+                                    url: client.config.embed_author_url
                                 },
                                 title: `เชื่อมต่อไปยังช่องเสียง \`${channel.name}\` เรียบร้อยค่ะ!`,
                                 color: 0x00ffff
@@ -88,7 +86,7 @@ module.exports = [
                             author: {
                                 icon_url: client.user.avatarURL(),
                                 name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: `เชื่อมต่อช่องเสียงที่คุณอยู่ อยู่แล้วค่ะ`,
                             color: 0x00ffff
@@ -96,7 +94,7 @@ module.exports = [
                     ]})
                 }
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -113,7 +111,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ไม่พบช่องเสียงที่คุณอยู่ค่ะ",
                         color: 0x00ffff
@@ -123,13 +121,13 @@ module.exports = [
                 if (!player) {
                     player = await client.manager.create(message.guild.id)
                     await player.connect(channel.id, { selfDeaf: true })
-                    music.player_events(client, message, player)
+                    client.function.music.player_events(client, message, player)
                     message.channel.send({embeds:[
                         new MessageEmbed({
                             author: {
                                 icon_url: client.user.avatarURL(),
                                 name: "ดำเนินการเรียบร้อยค่ะ!",
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: `เชื่อมต่อไปยังช่องเสียง \`${channel.name}\` เรียบร้อยค่ะ!`,
                             color: 0x00ffff
@@ -144,7 +142,7 @@ module.exports = [
                                     author: {
                                         icon_url: client.user.avatarURL(),
                                         name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                                        url: config.embed_author_url
+                                        url: client.config.embed_author_url
                                     },
                                     title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
                                     description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
@@ -153,12 +151,13 @@ module.exports = [
                             ]})
                         } else {
                             await player.connect(channel.id, { selfDeaf: true })
+                            player.setVolume(50)
                             message.channel.send({embeds:[
                                 new MessageEmbed({
                                     author: {
                                         icon_url: client.user.avatarURL(),
                                         name: "ดำเนินการเรียบร้อยค่ะ!",
-                                        url: config.embed_author_url
+                                        url: client.config.embed_author_url
                                     },
                                     title: `เชื่อมต่อไปยังช่องเสียง \`${channel.name}\` เรียบร้อยค่ะ!`,
                                     color: 0x00ffff
@@ -172,19 +171,19 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "โปรดระบุเพลงที่ต้องการจะให้เล่นด้วยนะคะ",
                         color: 0x00ffff
                     })
                 ]})
-                const res = await music.getTracks(client.manager, player, args.join(" "))
+                const res = await client.function.music.getTracks(client.manager, player, args.join(" "))
                 if (res === "ERROR_MUSIC_NOT_FOUND_OK_NAJA") return message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ไม่พบผลการค้นหาของเพลงที่คุณขอมาค่ะ",
                         description: "ลองใช้ Keyword อื่นดูนะคะ หรือลองใช้เป็นลิงก์ดูค่ะ",
@@ -199,7 +198,7 @@ module.exports = [
                             author: {
                                 icon_url: client.user.avatarURL(),
                                 name: "ดำเนินการเรียบร้อยค่ะ!",
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: res[0].info.title,
                             url: res[0].info.uri,
@@ -210,12 +209,17 @@ module.exports = [
                             fields: [
                                 {
                                     name: "ระยะเวลา",
-                                    value: `\`${res[0].info.isStream ? "STREAM" : music.msToTime(res[0].info.length)}\``,
+                                    value: `\`${res[0].info.isStream ? "STREAM" : client.function.music.msToTime(res[0].info.length)}\``,
                                     inline: true
                                 },
                                 {
                                     name: "ขอเพลงโดย",
                                     value: `<@!${message.author.id}>`,
+                                    inline: true
+                                },
+                                {
+                                    name: "เล่นเพลงอยู่ที่ห้อง",
+                                    value: `<#${player.channel}>`,
                                     inline: true
                                 }
                             ],
@@ -231,7 +235,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ดำเนินการเรียบร้อยค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "Platlist",
                         url: args.join(" "),
@@ -241,7 +245,7 @@ module.exports = [
                         },
                         fields: current.map(s => ({
                             name:`${res.indexOf(s) + 1}) ${s.info.title}`,
-                            value:`*${s.info.isStream ? "STREAM" : music.msToTime(s.info.length)}* | ${s.info.author}`
+                            value:`*${s.info.isStream ? "STREAM" : client.function.music.msToTime(s.info.length)}* | ${s.info.author}`
                         })),
                         color: 0x00ffff
                     })
@@ -277,7 +281,7 @@ module.exports = [
                     })
                 })
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -293,7 +297,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
                         color: 0x00ffff
@@ -305,10 +309,21 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
                         description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
                         color: 0x00ffff
                     })
                 ]})
@@ -317,7 +332,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ขณะนี้บอทพักการเล่นอยู่แล้วค่ะ",
                         color: 0x00ffff
@@ -329,30 +344,14 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ดำเนินการเรียบร้อยค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "พักการเล่นเพลงเรียบร้อยค่ะ",
-                        description: `เพลงที่กำลังเล่นขณะนี้ **${player.queue.current.title}**`,
-                        thumbnail: {
-                            url: `https://img.youtube.com/vi/${player.queue.current.identifier}/mqdefault.jpg`
-                        },
-                        fields: [
-                            {
-                                name: `${music.msToTime(player.queue.current.position)} / ${music.msToTime(player.queue.current.length)}`,
-                                value: `${music.progressbar(player.queue.current.length, player.queue.current.position, 15)}`,
-                                inline: true
-                            },
-                            {
-                                name: 'ขอเพลงโดย',
-                                value: `<@!${player.queue.current.requester}>`,
-                                inline: true
-                            }
-                        ],
                         color: 0x00ffff
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -368,7 +367,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
                         color: 0x00ffff
@@ -380,10 +379,21 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
                         description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
                         color: 0x00ffff
                     })
                 ]})
@@ -392,7 +402,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ขณะนี้บอทเล่นเพลงอยู่แล้วค่ะ",
                         color: 0x00ffff
@@ -404,30 +414,14 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ดำเนินการเรียบร้อยค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "เล่นเพลงต่อเรียบร้อยค่ะ",
-                        description: `เพลงที่กำลังเล่นขณะนี้ **${player.queue.current.title}**`,
-                        thumbnail: {
-                            url: `https://img.youtube.com/vi/${player.queue.current.identifier}/mqdefault.jpg`
-                        },
-                        fields: [
-                            {
-                                name: `${music.msToTime(player.queue.current.position)} / ${music.msToTime(player.queue.current.length)}`,
-                                value: `${music.progressbar(player.queue.current.length, player.queue.current.position, 15)}`,
-                                inline: true
-                            },
-                            {
-                                name: 'ขอเพลงโดย',
-                                value: `<@!${player.queue.current.requester}>`,
-                                inline: true
-                            }
-                        ],
                         color: 0x00ffff
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -444,7 +438,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
                         color: 0x00ffff
@@ -456,7 +450,7 @@ module.exports = [
                             author: {
                                 icon_url: client.user.avatarURL(),
                                 name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: "ขณะนี้ไม่มีเพลงในคิวแล้วค่ะ",
                             color: 0x00ffff
@@ -467,17 +461,17 @@ module.exports = [
                             author: {
                                 icon_url: message.guild.iconURL(),
                                 name: `นี่คือคิวเพลงของดิส ${message.guild.name} ค่ะ`,
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: "ขณะนี้ไม่มีเพลงในคิวแล้วค่ะ",
                             fields: [
                                 {
                                     name:
                                         `ขณะนี้กำลังเล่นเพลง\n` +
-                                        `${music.msToTime(player.queue.current.position)} / ${music.msToTime(player.queue.current.length)}\n` +
-                                        `${music.progressbar(player.queue.current.length, player.queue.current.position, 28)}\n` +
+                                        `${client.function.music.msToTime(player.queue.current.position)} / ${client.function.music.msToTime(player.queue.current.length)}\n` +
+                                        `${client.function.music.progressbar(player.queue.current.length, player.queue.current.position, 26)}\n` +
                                         `${player.queue.current.title}`,
-                                    value: `*${music.msToTime(player.queue.current.length)}* | ${player.queue.current.author} | ขอเพลงโดย <@!${player.queue.current.requester}>`
+                                    value: `*${client.function.music.msToTime(player.queue.current.length)}* | ${player.queue.current.author} | ขอเพลงโดย <@!${player.queue.current.requester}>`
                                 }
                             ],
                             color: 0x00ffff
@@ -492,22 +486,34 @@ module.exports = [
                         author: {
                             icon_url: message.guild.iconURL(),
                             name: `นี่คือคิวเพลงของดิส ${message.guild.name} ค่ะ`,
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: `มีเพลงในคิวทั้งหมด ${player.queue.tracks.length} เพลง`,
                         description: `นี่คือเพลงที่ ${start + 1} ถึงเพลงที่ ${start + current.length}`,
                         fields: [
                             current.map(s => ({
                                 name:`${player.queue.tracks.indexOf(s) + 1}) ${s.title}`,
-                                value:`*${music.msToTime(s.length)}* | ${s.author} | ขอเพลงโดย <@!${s.requester}>`
+                                value:`*${client.function.music.msToTime(s.length)}* | ${s.author} | ขอเพลงโดย <@!${s.requester}>`
                             })),
                             {
-                                name:
-                                    `ขณะนี้กำลังเล่นเพลง\n` +
-                                    `${music.msToTime(player.queue.current.position)} / ${music.msToTime(player.queue.current.length)}\n` +
-                                    `${music.progressbar(player.queue.current.length, player.queue.current.position, 28)}\n` +
-                                    `${player.queue.current.title}`,
-                                value: `*${music.msToTime(player.queue.current.length)}* | ${player.queue.current.author} | ขอเพลงโดย <@!${player.queue.current.requester}>`
+                                name: `ขณะนี้กำลังเล่นเพลง\n${client.function.music.msToTime(player.queue.current.position)} / ${client.function.music.msToTime(player.queue.current.length)}`,
+                                value: `${client.function.music.progressbar(player.queue.current.length, player.queue.current.position, 26)}`,
+                                inline: false
+                            },
+                            {
+                                name: "จากช่อง",
+                                value: "`" + player.queue.current.author + "`",
+                                inline: true
+                            },
+                            {
+                                name: 'ขอเพลงโดย',
+                                value: `<@!${player.queue.current.requester}>`,
+                                inline: true
+                            },
+                            {
+                                name: "เล่นเพลงอยู่ที่ห้อง",
+                                value: `<#${player.channel}>`,
+                                inline: true
                             }
                         ],
                         color: 0x00ffff
@@ -544,7 +550,7 @@ module.exports = [
                     })
                 })
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -561,7 +567,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
                         color: 0x00ffff
@@ -572,7 +578,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
                         color: 0x00ffff
@@ -583,14 +589,14 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "เพลงที่กำลังเล่นอยู่ในขณะนี้",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: player.queue.current.title,
                         url: player.queue.current.uri,
                         fields: [
                             {
-                                name: `${music.msToTime(player.queue.current.position)} / ${music.msToTime(player.queue.current.length)}`,
-                                value: `${music.progressbar(player.queue.current.length, player.queue.current.position, 28)}`,
+                                name: `${client.function.music.msToTime(player.queue.current.position)} / ${client.function.music.msToTime(player.queue.current.length)}`,
+                                value: `${client.function.music.progressbar(player.queue.current.length, player.queue.current.position, 26)}`,
                                 inline: false
                             },
                             {
@@ -612,11 +618,14 @@ module.exports = [
                         image: {
                             url: `https://img.youtube.com/vi/${player.queue.current.identifier}/maxresdefault.jpg`
                         },
+                        footer: {
+                            text: `เล่นอยู่ที่ node [${player.socket.id}]`
+                        },
                         color: 0x00ffff
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -633,7 +642,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
                         color: 0x00ffff
@@ -645,10 +654,21 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
                         description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
                         color: 0x00ffff
                     })
                 ]})
@@ -657,22 +677,22 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "โปรดระบุระดับเสียงที่ต้องการปรับด้วยนะคะ",
-                        description: `เช่น \`${get_prefix(client, message)}vol 38\``,
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}vol 38\``,
                         color: 0x00ffff
                     })
                 ]})
-                if (!args[0].match(/([0-9]{1,2})[:ms](([0-9]{1,2})s?)?/g)) return message.loading.edit({embeds:[
+                if (!isNumeric(args[0])) return message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "โปรดระบุระดับเสียงที่ต้องการปรับให้ถูกต้องด้วยนะคะ",
-                        description: `เช่น \`${get_prefix(client, message)}vol 38\``,
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}vol 38\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -681,7 +701,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "สามารถตั้งค่าระดับเสียง ได้เพียง 1 - 150 เท่านั้นนะคะ",
                         color: 0x00ffff
@@ -694,13 +714,14 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ดำเนินการเรียบร้อยค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
-                        title: `ปรับระดับเสียง จาก \`${volume_before}\` ไปที่ \`${args[0]}\` เรียบร้อยค่ะ`
+                        title: `ปรับระดับเสียง จาก \`${volume_before}\` ไปที่ \`${args[0]}\` เรียบร้อยค่ะ`,
+                        color: 0x00ffff
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -717,7 +738,7 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
                         color: 0x00ffff
@@ -729,10 +750,21 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
                         description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
                         color: 0x00ffff
                     })
                 ]})
@@ -751,7 +783,7 @@ module.exports = [
                                 author: {
                                     icon_url: client.user.avatarURL(),
                                     name: "ดำเนินการเรียบร้อยค่ะ!",
-                                    url: config.embed_author_url
+                                    url: client.config.embed_author_url
                                 },
                                 title: "รีเซ็ตการตั้งค่า equalizer เรียบร้อยค่ะ",
                                 color: 0x00ffff
@@ -759,12 +791,12 @@ module.exports = [
                         ]})
                     }
                     player.nightcore = true
-                    message.loading.edit({embeds:[
+                    return message.loading.edit({embeds:[
                         new MessageEmbed({
                             author: {
                                 icon_url: client.user.avatarURL(),
                                 name: "ดำเนินการเรียบร้อยค่ะ!",
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: "ตั้งค่า equalizer เป็นโหมด \`nightcore\` เรียบร้อยค่ะ",
                             color: 0x00ffff
@@ -779,7 +811,7 @@ module.exports = [
                                 author: {
                                     icon_url: client.user.avatarURL(),
                                     name: "ดำเนินการเรียบร้อยค่ะ!",
-                                    url: config.embed_author_url
+                                    url: client.config.embed_author_url
                                 },
                                 title: "รีเซ็ตการตั้งค่า equalizer เรียบร้อยค่ะ",
                                 color: 0x00ffff
@@ -787,12 +819,12 @@ module.exports = [
                         ]})
                     }
                     player.vaporwave = true
-                    message.loading.edit({embeds:[
+                    return message.loading.edit({embeds:[
                         new MessageEmbed({
                             author: {
                                 icon_url: client.user.avatarURL(),
                                 name: "ดำเนินการเรียบร้อยค่ะ!",
-                                url: config.embed_author_url
+                                url: client.config.embed_author_url
                             },
                             title: "ตั้งค่า equalizer เป็นโหมด \`vaporwave\` เรียบร้อยค่ะ",
                             color: 0x00ffff
@@ -805,14 +837,14 @@ module.exports = [
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ดำเนินการเรียบร้อยค่ะ!",
-                            url: config.embed_author_url
+                            url: client.config.embed_author_url
                         },
                         title: "รีเซ็ตการตั้งค่า equalizer เรียบร้อยค่ะ",
                         color: 0x00ffff
                     })
                 ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -821,11 +853,291 @@ module.exports = [
         aliases: ["repeat"],
         category: "music",
         information: "เปิดการเล่นซ้ำ",
+        async run(client, message, args) {
+            try {
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                if (args[0] != "queue") return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "โปรดระบุโหมดให้ถูกต้องด้วยนะคะ",
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}loop / loop queue\``,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue._loop && args[0] !== "queue") {
+                    player.queue.loop("song")
+                    return message.loading.edit({embeds:[
+                        new MessageEmbed({
+                            author: {
+                                icon_url: client.user.avatarURL(),
+                                name: "ดำเนินการเรียบร้อยค่ะ!",
+                                url: client.config.embed_author_url
+                            },
+                            title: "ตั้งค่าการเล่นซ้ำเป็นโหมด `song` เรียบร้อยค่ะ",
+                            color: 0x00ffff
+                        })
+                    ]})
+                }
+                if (player.queue._loop === "song" && args[0] !== "queue") {
+                    player.queue.loop("undefined")
+                    return message.loading.edit({embeds:[
+                        new MessageEmbed({
+                            author: {
+                                icon_url: client.user.avatarURL(),
+                                name: "ดำเนินการเรียบร้อยค่ะ!",
+                                url: client.config.embed_author_url
+                            },
+                            title: "ปิดการตั้งค่า Loop เรียบร้อยค่ะ",
+                            color: 0x00ffff
+                        })
+                    ]})
+                }
+                if (player.queue._loop !== "queue" && args[0] === "queue") {
+                    player.queue.loop("queue")
+                    return message.loading.edit({embeds:[
+                        new MessageEmbed({
+                            author: {
+                                icon_url: client.user.avatarURL(),
+                                name: "ดำเนินการเรียบร้อยค่ะ!",
+                                url: client.config.embed_author_url
+                            },
+                            title: "ตั้งค่าการ Loop เป็นโหมด `queue` เรียบร้อยค่ะ",
+                            color: 0x00ffff
+                        })
+                    ]})
+                }
+                if (player.queue._loop === "queue" && args[0] === "queue") {
+                    player.queue.loop("undefined")
+                    return message.loading.edit({embeds:[
+                        new MessageEmbed({
+                            author: {
+                                icon_url: client.user.avatarURL(),
+                                name: "ดำเนินการเรียบร้อยค่ะ!",
+                                url: client.config.embed_author_url
+                            },
+                            title: "ปิดการตั้งค่า Loop เรียบร้อยค่ะ",
+                            color: 0x00ffff
+                        })
+                    ]})
+                }
+            } catch (e) {
+                client.function.main.error_log(e, client, message)
+            }
+        }
+    },
+    {
+        name: "seek",
+        category: "music",
+        information: "กรอเพลง",
+        async run(client, message, args) {
+            try {
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current.isSeekable) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "เพลงที่เล่นอยู่ขณะนี้ไม่สามารถกรอได้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!args[0]) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "โปรดระบุตำแหน่งของเพลงที่ต้องการจะกรอด้วยนะคะ",
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}seek 1:23\``,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!args[0].match(/^[0-5]?[0-9](:[0-5][0-9]){1,2}$/)) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "โปรดระบุตำแหน่งของเพลงให้ถูกต้องด้วยนะคะ",
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}seek 1:23\``,
+                        color: 0x00ffff
+                    })
+                ]})
+                const ms = args[0].split(":").map(Number).reduce((acc, curr) => curr + acc * 60) * 1000
+                if (ms > player.queue.current.length) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: `ไม่สามารถข้ามไปยังนาทีที่ ${args[0]} ได้ค่ะ`,
+                        description: `เพลงที่กำลังเล่นอยู่ขณะนี้ มีความยาว **${client.function.music.msToTime(player.queue.current.length)}**`,
+                        color: 0x00ffff
+                    })
+                ]})
+                player.seek(ms)
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: `ข้ามไปยังนาทีที่ ${args[0]} เรียบร้อยค่ะ!`,
+                        color: 0x00ffff
+                    })
+                ]})
+            } catch (e) {
+                client.function.main.error_log(e, client, message)
+            }
+        }
+    },
+    {
+        name: "restart",
+        category: "music",
+        information: "เริ่มเล่นเพลงใหม่ตั้งแต่ต้น",
         async run(client, message) {
             try {
-
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current.isSeekable) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "เพลงที่เล่นอยู่ขณะนี้ไม่สามารถกรอได้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                player.seek(0)
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "เริ่มเล่นเพลงใหม่เรียบร้อยค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -835,9 +1147,56 @@ module.exports = [
         information: "เล่นเพลงถัดไป",
         async run(client, message) {
             try {
-
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                player.queue.skip()
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "กำลังเล่นเพลงถัดไปในคิวค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -845,11 +1204,81 @@ module.exports = [
         name: "skipto",
         category: "music",
         information: "ข้ามไปยังเพลง",
-        async run(client, message) {
+        async run(client, message, args) {
             try {
-
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!args[0]) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "โปรดระบุแหน่งเพลงที่ต้องการจะให้ข้ามไปถึงด้วยนะคะ",
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}skipto 5\``,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (await player.queue.skipto(parseInt(args[0])) === "NO_QUEUE_CANNOT_SKIPTO") return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: `ไม่สามารถข้ามไปเล่นเพลงที่ \`${args[0]}\` ได้ค่ะ`,
+                        description: `ดูเหมือนคิวเพลงจะตันถึงแค่เพลงที่ \`${player.queue.tracks.length}\` นะคะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "กำลังเล่นเพลงถัดไปในคิวค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -860,9 +1289,107 @@ module.exports = [
         information: "เล่นเพลงก่อนหน้า",
         async run(client, message) {
             try {
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                player.queue.previou()
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "กำลังเล่นเพลงก่อนหน้านี้ในคิวค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+            } catch (e) {
+                client.function.main.error_log(e, client, message)
+            }
+        }
+    },
+    {
+        name: "move",
+        aliases: ["mv"],
+        category: "music",
+        information: "ย้ายเพลงในคิว",
+        async run(client, message) {
+            try {
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!player.queue.current) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงที่กำลังเล่นอยู่ในขณะนี้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                if (!args[0] || !args[1]) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "โปรดเพลงที่ต้องการจะให้ย้ายให้ถูกต้องด้วยนะคะ",
+                        description: `เช่น \`${client.function.main.get_prefix(client, message)}move 3 1\``,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (player.queue.move(args[0], args[1]) === "NO_QUEUE_CANNOT_MOVE") return
 
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -871,11 +1398,179 @@ module.exports = [
         aliases: ["ps"],
         category: "music",
         information: "เล่นเพลงทันที",
-        async run(client, message) {
+        async run(client, message, args) {
             try {
+                const { channel } = message.member.voice
+                if (!channel) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่พบช่องเสียงที่คุณอยู่ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                let player = client.manager.players.get(message.guild.id)
+                if (!player) {
+                    player = await client.manager.create(message.guild.id)
+                    await player.connect(channel.id, { selfDeaf: true })
+                    client.function.music.player_events(client, message, player)
+                    message.channel.send({embeds:[
+                        new MessageEmbed({
+                            author: {
+                                icon_url: client.user.avatarURL(),
+                                name: "ดำเนินการเรียบร้อยค่ะ!",
+                                url: client.config.embed_author_url
+                            },
+                            title: `เชื่อมต่อไปยังช่องเสียง \`${channel.name}\` เรียบร้อยค่ะ!`,
+                            color: 0x00ffff
+                        })
+                    ]}).then(m => setTimeout(() => m.delete(), 5000))
+                } else {
+                    if (player.channel != channel.id) {
+                        const player_channel = message.guild.channels.cache.get(player.channel)
+                        if (player.playing && player_channel.members.size > 1) {
+                            return message.loading.edit({embeds:[
+                                new MessageEmbed({
+                                    author: {
+                                        icon_url: client.user.avatarURL(),
+                                        name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                                        url: client.config.embed_author_url
+                                    },
+                                    title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                                    description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                                    color: 0x00ffff
+                                })
+                            ]})
+                        } else {
+                            await player.connect(channel.id, { selfDeaf: true })
+                            player.setVolume(50)
+                            message.channel.send({embeds:[
+                                new MessageEmbed({
+                                    author: {
+                                        icon_url: client.user.avatarURL(),
+                                        name: "ดำเนินการเรียบร้อยค่ะ!",
+                                        url: client.config.embed_author_url
+                                    },
+                                    title: `เชื่อมต่อไปยังช่องเสียง \`${channel.name}\` เรียบร้อยค่ะ!`,
+                                    color: 0x00ffff
+                                }).then(m => setTimeout(() => m.delete(), 5000))
+                            ]})
+                        }
+                    }
+                }
+                if (!args[0]) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "โปรดระบุเพลงที่ต้องการจะให้เล่นด้วยนะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const res = await client.function.music.getTracks(client.manager, player, args.join(" "))
+                if (res === "ERROR_MUSIC_NOT_FOUND_OK_NAJA") return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่พบผลการค้นหาของเพลงที่คุณขอมาค่ะ",
+                        description: "ลองใช้ Keyword อื่นดูนะคะ หรือลองใช้เป็นลิงก์ดูค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                if (res.length > 0) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่สามารถเพิ่มเพลย์ลิสต์ในคำสั่ง playskip ได้ค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                player.queue.add(res, message.author)
+                if (!player.playing) player.queue.start()
+                if (player.queue.tracks.length === 0) {
+                    return message.loading.edit({embeds:[
+                        new MessageEmbed({
+                            author: {
+                                icon_url: client.user.avatarURL(),
+                                name: "ดำเนินการเรียบร้อยค่ะ!",
+                                url: client.config.embed_author_url
+                            },
+                            title: res[0].info.title,
+                            url: res[0].info.uri,
+                            description: "เพิ่มเพลงใหม่ไปยังคิว เรียบร้อยค่ะ",
+                            thumbnail: {
+                                url: `https://img.youtube.com/vi/${res[0].info.identifier}/mqdefault.jpg`
+                            },
+                            fields: [
+                                {
+                                    name: "ระยะเวลา",
+                                    value: `\`${res[0].info.isStream ? "STREAM" : client.function.music.msToTime(res[0].info.length)}\``,
+                                    inline: true
+                                },
+                                {
+                                    name: "ขอเพลงโดย",
+                                    value: `<@!${message.author.id}>`,
+                                    inline: true
+                                },
+                                {
+                                    name: "เล่นเพลงอยู่ที่ห้อง",
+                                    value: `<#${player.channel}>`,
+                                    inline: true
+                                }
+                            ],
+                            color: 0x00ffff
+                        })
+                    ]})
+                }
+                player.queue.move(player.queue.tracks.length, 1)
+                player.queue.skip()
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: res[0].info.title,
+                            url: res[0].info.uri,
+                            description: "ข้ามและเล่นเพลง",
+                            thumbnail: {
+                                url: `https://img.youtube.com/vi/${res[0].info.identifier}/mqdefault.jpg`
+                            },
+                            fields: [
+                                {
+                                    name: "ระยะเวลา",
+                                    value: `\`${res[0].info.isStream ? "STREAM" : client.function.music.msToTime(res[0].info.length)}\``,
+                                    inline: true
+                                },
+                                {
+                                    name: "ขอเพลงโดย",
+                                    value: `<@!${message.author.id}>`,
+                                    inline: true
+                                },
+                                {
+                                    name: "เล่นเพลงอยู่ที่ห้อง",
+                                    value: `<#${player.channel}>`,
+                                    inline: true
+                                }
+                            ],
+                        color: 0x00ffff
 
+                    })
+                ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -886,9 +1581,46 @@ module.exports = [
         information: "สุ่มเพลงในคิว",
         async run(client, message) {
             try {
-
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                player.queue.shuffle()
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "สุ่มเพลงในคิวเรียบร้อยค่ะ",
+                        description: `\`${client.function.main.get_prefix(client, message)}queue\` เพื่อดูการเปลี่ยนแปลงได้เลยค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -899,9 +1631,45 @@ module.exports = [
         information: "หยุดเล่นเพลง และออกจากห้องเสียง",
         async run(client, message) {
             try {
-
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                client.manager.destroy(message.guild.id)
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: `ตัดการเชื่อมต่อจากช่องเสียง \`${channel.name}\` เรียบร้อยค่ะ!`,
+                        color: 0x00ffff
+                    })
+                ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -912,9 +1680,59 @@ module.exports = [
         information: "เล่นเพลงอัตโนมัติไปเรื่อยๆ",
         async run(client, message) {
             try {
-
+                const player = client.manager.players.get(message.guild.id)
+                if (!player) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงอยู่นะคะ",
+                        color: 0x00ffff
+                    })
+                ]})
+                const { channel } = message.member.voice
+                if (player.channel != channel.id) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ดูเหมือนตอนนี้บอทจะไม่ได้เชื่อมต่อช่องเสียงของคุณอยู่นะคะ",
+                        description: `ขณะนี้มีคนใช้บอทอยู่ที่ช่องเสียง <#${player.channel}> ค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+                if (player.autoplay) {
+                    player.autoplay = false
+                    return message.loading.edit({embeds:[
+                        new MessageEmbed({
+                            author: {
+                                icon_url: client.user.avatarURL(),
+                                name: "ดำเนินการเรียบร้อยค่ะ!",
+                                url: client.config.embed_author_url
+                            },
+                            title: "ปิดโหมด Autoplay เรียบร้อยค่ะ",
+                            color: 0x00ffff
+                        })
+                    ]})
+                }
+                player.autoplay = true
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "เปิดโหมด Autoplay เรียบร้อยค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     },
@@ -924,9 +1742,28 @@ module.exports = [
         information: "ตั้งค่าห้องสั่งเพลงของดิส",
         async run(client, message) {
             try {
-
+                async function create_channel() {
+                    return await message.guild.channels.create(`🎶 ${client.user.username} Player`,{
+                        type: "GUILD_TEXT",
+                        parent: message.channel.parentId
+                    })
+                }
+                console.log(await create_channel())
+                // const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guild.id)
+                // if (this_guild_settings !== null) {
+                //     if (this_guild_settings.music_player === null) {
+                //         client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = '${JSON.stringify({ channel_id: "5454545", message_id: "455665465" })}' WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                //     }
+                //     else {
+                //         client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = NULL WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                //     }
+                // } else {
+                //     client.mysql.query(
+                //         "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player, reactions_roles) " +
+                //         `VALUES (NULL, ${message.guild.id}, NULL, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ channel_id: "5454545", message_id: "455665465" })}', NULL)`, (err, ins) => { if (err) console.log(err) })
+                // }
             } catch (e) {
-                error_log(e, client, message)
+                client.function.main.error_log(e, client, message)
             }
         }
     }
