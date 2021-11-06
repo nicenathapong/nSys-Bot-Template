@@ -3,7 +3,7 @@ const { QueuePlugin } = require('@liliaclient1/queue')
 const { SpotifyPlugin } = require('@liliaclient1/spotify')
 const config = require("../../config")
 
-module.exports = function handles_music(client) {
+module.exports = (client) => {
     client.manager = new Manager(config.lavalink, {
         send: (id, payload) => {
             const guild = client.guilds.cache.get(id)

@@ -1,6 +1,6 @@
 const { createConnection } = require('mysql')
 
-module.exports = function handles_database(client) {
+module.exports = (client) => {
     client.mysql = createConnection(client.config.self_database)
     client.datacore = createConnection(client.config.core_database)
     connect_to_database(client)

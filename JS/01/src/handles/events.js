@@ -1,4 +1,4 @@
-module.exports = function handles_events(client) {
+module.exports = (client) => {
     let all_events_status = []
     require("../events").forEach(e => {
         if (e.name && e.run) {

@@ -7,7 +7,7 @@ module.exports = [
             return new Promise((resolve, reject) => {
                 request.get({
                     url: encodeURI(`${client.config.api_url}getimgurl/${word}/${count ? count : 1}`),
-                    time: truez
+                    time: true
                 }, (err, res) => {
                     if (err) reject("[err] API error.", err)
                     resolve({

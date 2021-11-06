@@ -1,7 +1,7 @@
 const { Collection } = require('discord.js')
 const { readdirSync } = require('fs')
 
-module.exports = function handles_commands(client) {
+module.exports = (client) => {
     client.commands = new Collection()
     let all_commands_status = []
     readdirSync("./src/commands").forEach(commandFile => {

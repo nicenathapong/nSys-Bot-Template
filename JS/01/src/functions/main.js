@@ -12,7 +12,6 @@ module.exports = [
                         icon_url: client.user.avatarURL({ dynamic:true }),
                         url: client.config.embed_author_url
                     },
-                    description: `\`\`\`${err.code == "ETIMEDOUT" ? "Error: connect ETIMEDOUT" : err}\`\`\``,
                     color: 0x00ffff
                 })
             ]})

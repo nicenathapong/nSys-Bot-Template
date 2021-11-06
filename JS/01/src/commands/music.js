@@ -38,7 +38,7 @@ module.exports = [
                     player = await client.manager.create(message.guild.id)
                     await player.connect(channel.id, { selfDeaf: true })
                     player.setVolume(50)
-                    client.function.music.player_events(client, message, player)
+                    await client.function.music.player_events(client, message, player)
                     return message.loading.edit({embeds:[
                         new MessageEmbed({
                             author: {
@@ -68,6 +68,8 @@ module.exports = [
                         ]})
                     } else {
                         await player.connect(channel.id, { selfDeaf: true })
+                        player.setVolume(50)
+                        await client.function.music.player_events(client, message, player)
                         message.loading.edit({embeds:[
                             new MessageEmbed({
                                 author: {
@@ -121,7 +123,7 @@ module.exports = [
                 if (!player) {
                     player = await client.manager.create(message.guild.id)
                     await player.connect(channel.id, { selfDeaf: true })
-                    client.function.music.player_events(client, message, player)
+                    await client.function.music.player_events(client, message, player)
                     message.channel.send({embeds:[
                         new MessageEmbed({
                             author: {
@@ -177,7 +179,7 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
-                const res = await client.function.music.getTracks(client.manager, player, args.join(" "))
+                const res = await client.function.music.getTracks(client, args.join(" "))
                 if (res === "ERROR_MUSIC_NOT_FOUND_OK_NAJA") return message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -1183,6 +1185,17 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
+                if (player.queue.tracks.length < 1) return message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ไม่มีเพลงในคิวให้ข้ามแล้วค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
                 player.queue.skip()
                 message.loading.edit({embeds:[
                     new MessageEmbed({
@@ -1472,7 +1485,7 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
-                const res = await client.function.music.getTracks(client.manager, player, args.join(" "))
+                const res = await client.function.music.getTracks(client, args.join(" "))
                 if (res === "ERROR_MUSIC_NOT_FOUND_OK_NAJA") return message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -1485,20 +1498,11 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
-                if (res.length > 0) return message.loading.edit({embeds:[
-                    new MessageEmbed({
-                        author: {
-                            icon_url: client.user.avatarURL(),
-                            name: "ไม่สามารถดำเนินการได้ค่ะ!",
-                            url: client.config.embed_author_url
-                        },
-                        title: "ไม่สามารถเพิ่มเพลย์ลิสต์ในคำสั่ง playskip ได้ค่ะ",
-                        color: 0x00ffff
-                    })
-                ]})
                 player.queue.add(res, message.author)
                 if (!player.playing) player.queue.start()
-                if (player.queue.tracks.length === 0) {
+                if (res.length === 1) {
+                    player.queue.move(player.queue.tracks.length, 1)
+                    player.queue.skip()
                     return message.loading.edit({embeds:[
                         new MessageEmbed({
                             author: {
@@ -1508,7 +1512,7 @@ module.exports = [
                             },
                             title: res[0].info.title,
                             url: res[0].info.uri,
-                            description: "เพิ่มเพลงใหม่ไปยังคิว เรียบร้อยค่ะ",
+                            description: "ข้ามและเล่นเพลงใหม่เรียบร้อยค่ะ",
                             thumbnail: {
                                 url: `https://img.youtube.com/vi/${res[0].info.identifier}/mqdefault.jpg`
                             },
@@ -1533,42 +1537,61 @@ module.exports = [
                         })
                     ]})
                 }
-                player.queue.move(player.queue.tracks.length, 1)
-                player.queue.skip()
-                message.loading.edit({embeds:[
-                    new MessageEmbed({
+
+                function generateEmbed(start) {
+                    const current = res.slice(start, start + 10)
+
+                    return new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: "ดำเนินการเรียบร้อยค่ะ!",
                             url: client.config.embed_author_url
                         },
-                        title: res[0].info.title,
-                            url: res[0].info.uri,
-                            description: "ข้ามและเล่นเพลง",
-                            thumbnail: {
-                                url: `https://img.youtube.com/vi/${res[0].info.identifier}/mqdefault.jpg`
-                            },
-                            fields: [
-                                {
-                                    name: "ระยะเวลา",
-                                    value: `\`${res[0].info.isStream ? "STREAM" : client.function.music.msToTime(res[0].info.length)}\``,
-                                    inline: true
-                                },
-                                {
-                                    name: "ขอเพลงโดย",
-                                    value: `<@!${message.author.id}>`,
-                                    inline: true
-                                },
-                                {
-                                    name: "เล่นเพลงอยู่ที่ห้อง",
-                                    value: `<#${player.channel}>`,
-                                    inline: true
-                                }
-                            ],
+                        title: "Platlist",
+                        url: args.join(" "),
+                        description: `ข้ามและเล่นเพลงใหม่ทั้งหมด ${res.length} เพลงเรียบร้อยค่ะ!`,
+                        thumbnail: {
+                            url: `https://img.youtube.com/vi/${current[0].info.identifier}/mqdefault.jpg`
+                        },
+                        fields: current.map(s => ({
+                            name:`${res.indexOf(s) + 1}) ${s.info.title}`,
+                            value:`*${s.info.isStream ? "STREAM" : client.function.music.msToTime(s.info.length)}* | ${s.info.author}`
+                        })),
                         color: 0x00ffff
-
                     })
-                ]})
+                }
+
+                for (let i = 0; i < player.queue.tracks.length; i++) player.queue.move(player.queue.tracks.length - i, i + 1)
+
+                const canFitOnOnePage = res.length <= 10
+                const embedMessage = await message.loading.edit({
+                    embeds: [generateEmbed(0)],
+                    components: canFitOnOnePage
+                        ? []
+                        : [new MessageActionRow({components: [forwardButton]})]
+                    })
+    
+                if (canFitOnOnePage) return
+    
+                const collector = embedMessage.createMessageComponentCollector({
+                    filter: ({user}) => user.id === message.author.id, time: 30 * 60000
+                })
+    
+                let currentIndex = 0
+                collector.on('collect', async interaction => {
+                    interaction.customId === 'back' ? (currentIndex -= 10) : (currentIndex += 10)
+                    await interaction.update({
+                        embeds: [generateEmbed(currentIndex)],
+                        components: [
+                        new MessageActionRow({
+                            components: [
+                            ...(currentIndex ? [backButton] : []),
+                            ...(currentIndex + 10 < res.length ? [forwardButton] : [])
+                            ]
+                        })
+                        ]
+                    })
+                })
             } catch (e) {
                 client.function.main.error_log(e, client, message)
             }
@@ -1739,29 +1762,72 @@ module.exports = [
     {
         name: "setup",
         category: "music",
-        information: "ตั้งค่าห้องสั่งเพลงของดิส",
+        information: "ตั้งค่าห้องสั่งเพลงบอทของดิส",
         async run(client, message) {
             try {
-                async function create_channel() {
-                    return await message.guild.channels.create(`🎶 ${client.user.username} Player`,{
+                async function create_channel_and_msg() {
+                    const channel = await message.guild.channels.create(`🎶 ${client.user.username}`, {
                         type: "GUILD_TEXT",
                         parent: message.channel.parentId
                     })
+                    const msg = await channel.send(client.utils.player_msg_default(client))
+                    return { channel: channel, msg: msg }
                 }
-                console.log(await create_channel())
-                // const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guild.id)
-                // if (this_guild_settings !== null) {
-                //     if (this_guild_settings.music_player === null) {
-                //         client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = '${JSON.stringify({ channel_id: "5454545", message_id: "455665465" })}' WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
-                //     }
-                //     else {
-                //         client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = NULL WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
-                //     }
-                // } else {
-                //     client.mysql.query(
-                //         "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player, reactions_roles) " +
-                //         `VALUES (NULL, ${message.guild.id}, NULL, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ channel_id: "5454545", message_id: "455665465" })}', NULL)`, (err, ins) => { if (err) console.log(err) })
-                // }
+
+                let player
+                const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guild.id)
+                if (this_guild_settings !== null) {
+                    if (this_guild_settings.music_player === null) {
+                        player = await create_channel_and_msg()
+                        client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}' WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                    } else {
+                        try { message.guild.channels.cache.get(JSON.parse(this_guild_settings.music_player).channel_id).delete() } catch (e) { console.log(e) }
+                        client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = NULL WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                        return message.loading.edit({embeds:[
+                            new MessageEmbed({
+                                author: {
+                                    icon_url: client.user.avatarURL(),
+                                    name: "ดำเนินการเรียบร้อยค่ะ!",
+                                    url: client.config.embed_author_url
+                                },
+                                title: "ลบห้องสั่งเพลงของบอทเรียบร้อยค่ะ",
+                                description: "สามารถสร้างใหม่โดยใช้คำสั่งนี้อีกครั้งได้เลยค่ะ",
+                                color: 0x00ffff
+                            })
+                        ]})
+                    }
+                } else {
+                    player = await create_channel_and_msg()
+                    client.mysql.query(
+                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player, reactions_roles) " +
+                        `VALUES (NULL, ${message.guild.id}, NULL, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}', NULL)`, (err, ins) => { if (err) console.log(err) })
+                }
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "ตั้งค่าห้องสั่งเพลงของบอทเรียบร้อยค่ะ",
+                        description: `<#${player.channel.id}> | สามารถลบโดยใช้คำสั่งนี้อีกครั้งได้เลยค่ะ`,
+                        color: 0x00ffff
+                    })
+                ]})
+            } catch (e) {
+                client.function.main.error_log(e, client, message)
+            }
+        }
+    },
+    {
+        name: "rtest",
+        async run(client, message) {
+            try {
+                let count = 0
+                setInterval(() => {
+                    count++
+                    message.channel.send(`rate limit test | ${count}`)
+                }, 3000)
             } catch (e) {
                 client.function.main.error_log(e, client, message)
             }

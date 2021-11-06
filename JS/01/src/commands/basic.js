@@ -58,14 +58,8 @@ module.exports = [
                     customId: "bot_admin"
                 })
 
-                console.log(message.author.id)
-
                 const components1 = new MessageActionRow({components: [homeButton, basicButton, musicButton]})
-                const components2 = new MessageActionRow({components: [
-                    gameButton,
-                    guild_settingsButton,
-                    guild_adminButton
-                ]})
+                const components2 = new MessageActionRow({components: [gameButton, guild_settingsButton, guild_adminButton]})
                 if (client.function.main.isAdmin(client, message.author.id)) components2.components.push(bot_adminButton)
 
                 const mainEmbed = new MessageEmbed({

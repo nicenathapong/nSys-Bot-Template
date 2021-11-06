@@ -1,6 +1,6 @@
 const { readdirSync } = require('fs')
 
-module.exports = function handles_functions(client) {
+module.exports = (client) => {
     client.function = {}
     let all_functions_status = []
     readdirSync("./src/functions").forEach(functionFile => {
