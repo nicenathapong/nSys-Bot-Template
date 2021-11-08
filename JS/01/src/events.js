@@ -1,5 +1,4 @@
 const { MessageEmbed , MessageButton , MessageActionRow} = require('discord.js')
-const config = require("../config")
 const color = require('colors')
 
 const backButton = new MessageButton({
@@ -81,11 +80,11 @@ module.exports = [
         name: "messageCreate",
         async run(client, message) {
             if (message.author.bot) return
-            const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guild.id)
+            const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guildId)
 
             if (this_guild_settings?.music_player && message.channel.id === JSON.parse(this_guild_settings?.music_player).channel_id) return await play_music(client, message, this_guild_settings)
 
-            const prefix = this_guild_settings?.prefix ? this_guild_settings?.prefix : client.config.prefix
+            const prefix = this_guild_settings?.custom_prefix ? this_guild_settings.custom_prefix : client.config.prefix
             if (message.content.startsWith(prefix)) {
                 const args = message.content.slice(prefix.length).split(/\s+/)
                 const command = args.shift().toLowerCase()
@@ -98,9 +97,27 @@ module.exports = [
         async run(client, oldMember, newMember) {
             // console.log(oldMember.channel) // null => join
             // console.log(newMember.channel) // null => left
+            const m = oldMember || newMember
+
+            const this_guild_settings = await client.function.database.get_this_guild_settings(client, oldMember.guild.id)
+
+            if (this_guild_settings?.auto_voice_channel) {
+                const main_channel = m.guild.channels.cache.get(JSON.parse(this_guild_settings.auto_voice_channel).channel_id)
+                const category = m.guild.channels.cache.get(JSON.parse(this_guild_settings.auto_voice_channel).category_id)
+                if (main_channel.members.size === 1 && main_channel.parent.id === JSON.parse(this_guild_settings.auto_voice_channel).category_id) {
+                    const member = m.guild.members.cache.get(main_channel.members.map(m => m.user.id)[0])
+                    m.guild.channels.create(`${member.user.username} - Create`, {
+                        type: "GUILD_VOICE",
+                        parent: category
+                    }).then(async ch => await member.voice.setChannel(ch))
+                }
+                category.children.forEach(async channel => {
+                    if (channel.id !== JSON.parse(this_guild_settings.auto_voice_channel).channel_id && channel.members.size === 0) try { await channel.delete() } catch (e) {}
+                })
+            }
+
             if (!newMember.channel && oldMember.id === client.user.id) {
                 oldMember.guild.members.cache.get(client.user.id).setNickname(client.user.username)
-                const this_guild_settings = await client.function.database.get_this_guild_settings(client, oldMember.guild.id)
                 if (this_guild_settings?.music_player) {
                     let channel, msg
                     try {
@@ -136,7 +153,7 @@ module.exports = [
                 await command.run(client, interaction)
             } catch (error) {
                 console.log(error)
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
+                await interaction.reply({ content: 'เกิดข้อผิดพลาดค่ะ!'})
             }
         }
     },
@@ -176,6 +193,20 @@ module.exports = [
                 }
             }
         }
+    },
+    {
+        name: "guildMemberAdd",
+        async run(client, member) {
+            const this_guild_settings = await client.function.database.get_this_guild_settings(client, member.guild.id)
+            if (this_guild_settings?.welcome_channel_id) client.function.main.sendWelcomePic(member, member.guild.channels.cache.get(this_guild_settings.welcome_channel_id), "JOIN")
+        }
+    },
+    {
+        name: "guildMemberRemove",
+        async run(client, member) {
+            const this_guild_settings = await client.function.database.get_this_guild_settings(client, member.guild.id)
+            if (this_guild_settings?.welcome_channel_id) client.function.main.sendWelcomePic(member, member.guild.channels.cache.get(this_guild_settings.welcome_channel_id), "LEFT")
+        }
     }
 ]
 
@@ -202,12 +233,12 @@ async function run_commands(command, client, message, args) {
             })
         },{
             context: {
-                log_channels: config.log_channels,
+                log_channels: client.config.log_channels,
                 embed: new MessageEmbed({
                     author: {
                         name: "Command use!",
                         icon_url: message.guild.iconURL(),
-                        url: config.embed_author_url
+                        url: client.config.embed_author_url
                     },
                     title: message.content,
                     description: `${message.guild.name} | ${message.author.tag}`,

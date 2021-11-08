@@ -1,7 +1,7 @@
 const { MessageEmbed } = require('discord.js')
 const { SpotifyTrack, SpotifyAlbum, SpotifyPlaylist, SpotifyArtist } = require('@liliaclient1/spotify')
-const axios = require('axios')
 const { splitBar } = require('string-progressbar') 
+const request = require('request')
 
 module.exports = [
     {
@@ -33,14 +33,13 @@ module.exports = [
                     const track = results.tracks
                     return track
                 } else if (url.includes("https://soundcloud.com")) {
-                    const res = await axios({
+                    const res = await request.get({
                         url: url
                     }).catch(err => { console.log(err) })
                     try {
                         const results = await client.manager.search('https://soundcloud.com' + res.request.path);
                         if (!results || results.tracks.length < 1) return "ERROR_MUSIC_NOT_FOUND_OK_NAJA"
                         const track = results.tracks
-                        console.log(track)
                         return track
                     } catch (err) {
                         return "ERROR_MUSIC_NOT_FOUND_OK_NAJA"

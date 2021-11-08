@@ -1410,7 +1410,7 @@ module.exports = [
         name: "playskip",
         aliases: ["ps"],
         category: "music",
-        information: "เล่นเพลงทันที",
+        information: "ข้ามเพลง และเล่นเพลงทันที",
         async run(client, message, args) {
             try {
                 const { channel } = message.member.voice
@@ -1775,14 +1775,14 @@ module.exports = [
                 }
 
                 let player
-                const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guild.id)
+                const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guildId)
                 if (this_guild_settings !== null) {
                     if (this_guild_settings.music_player === null) {
                         player = await create_channel_and_msg()
-                        client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}' WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                        client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}' WHERE \`guild_id\` = '${message.guildId}'`, (err, res) => { if (err) console.log(err) })
                     } else {
                         try { message.guild.channels.cache.get(JSON.parse(this_guild_settings.music_player).channel_id).delete() } catch (e) { console.log(e) }
-                        client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = NULL WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                        client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = NULL WHERE \`guild_id\` = '${message.guildId}'`, (err, res) => { if (err) console.log(err) })
                         return message.loading.edit({embeds:[
                             new MessageEmbed({
                                 author: {
@@ -1799,8 +1799,8 @@ module.exports = [
                 } else {
                     player = await create_channel_and_msg()
                     client.mysql.query(
-                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel_id, music_player, reactions_roles) " +
-                        `VALUES (NULL, ${message.guild.id}, NULL, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}', NULL)`, (err, ins) => { if (err) console.log(err) })
+                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player, reactions_roles) " +
+                        `VALUES (NULL, ${message.guildId}, NULL, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}', NULL)`, (err, ins) => { if (err) console.log(err) })
                 }
                 message.loading.edit({embeds:[
                     new MessageEmbed({
