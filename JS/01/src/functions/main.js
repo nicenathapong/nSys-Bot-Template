@@ -1,5 +1,6 @@
 const { MessageEmbed , MessageAttachment } = require('discord.js')
 const { registerFont , createCanvas , loadImage } = require('canvas')
+const { readdirSync } = require('fs')
 
 registerFont( './data/welcome/FC_Iconic_Bold.ttf', { family: "FC_Iconic_Bold" } )
 
@@ -34,8 +35,38 @@ module.exports = [
     },
     {
         name: "reload",
-        async run() {
-
+        async run(client) {
+            client.config = {}
+            delete require.cache[require.resolve("../../config")]
+            client.config = require("../../config")
+            console.log(`\n[cluster ${client.cluster.id}] Reload config finish!`)
+            readdirSync("./src/commands").forEach(commandFile => {
+                delete require.cache[require.resolve("../commands/" + commandFile)]
+                require("../commands/" + commandFile).forEach(c => {
+                    client.commands.delete(c.name)
+                    client.commands.set(c.name, c)
+                })
+                console.log(`[cluster ${client.cluster.id}] Reload extension [${commandFile.replace(".js", "")}] finish!`)
+            })
+            require("../slashcommands").forEach(slc => {
+                client.commands.delete(slc.data.name)
+                client.commands.set(slc.data.name, slc)
+                console.log(`[cluster ${client.cluster.id}] Reload SlashCommands [${slc.data.name}] finish!`)
+            })
+            require("../events").forEach(event => {
+                client.removeAllListeners(event.name)
+                client.on(event.name, event.run.bind(null, client))
+                console.log(`[cluster ${client.cluster.id}] Reload event [${event.name}] finish!`)
+            })
+            client.function = {}
+            readdirSync("./src/functions").forEach(functionFile => {
+                delete require.cache[require.resolve("../functions/" + functionFile)]
+                client.function[functionFile.replace(".js", "")] = {}
+                require("../functions/" + functionFile).forEach(func => {
+                    client.function[functionFile.replace(".js", "")][func.name] = func.run.bind(null)
+                    console.log(`[cluster ${client.cluster.id}] Reload function [${func.name}] finish!`)
+                })
+            })
         }
     },
     {

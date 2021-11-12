@@ -1,18 +1,5 @@
 const { MessageEmbed , MessageButton , MessageActionRow} = require('discord.js')
 
-const backButton = new MessageButton({
-    style: 'SECONDARY',
-    label: "ก่อนหน้า",
-    emoji: "⬅️",
-    customId: 'back'
-})
-const forwardButton = new MessageButton({
-    style: 'SECONDARY',
-    label: "หน้าถัดไป",
-    emoji: "➡️",
-    customId: 'forward'
-})
-
 module.exports = [
     {
         name: "join",
@@ -254,31 +241,27 @@ module.exports = [
                 }
 
                 const canFitOnOnePage = res.length <= 10
-                const embedMessage = await message.loading.edit({
+                message.loading.edit({
                     embeds: [generateEmbed(0)],
-                    components: canFitOnOnePage
-                        ? []
-                        : [new MessageActionRow({components: [forwardButton]})]
+                    components: canFitOnOnePage ? [] : [new MessageActionRow({components: [client.utils.button().forward]})]
                     })
     
                 if (canFitOnOnePage) return
-    
-                const collector = embedMessage.createMessageComponentCollector({
-                    filter: ({user}) => user.id === message.author.id, time: 30 * 60000
-                })
-    
+
                 let currentIndex = 0
-                collector.on('collect', async interaction => {
+                message.loading.createMessageComponentCollector({
+                    filter: ({user}) => user.id === message.author.id, time: 30 * 60000
+                }).on('collect', interaction => {
                     interaction.customId === 'back' ? (currentIndex -= 10) : (currentIndex += 10)
-                    await interaction.update({
+                    interaction.update({
                         embeds: [generateEmbed(currentIndex)],
                         components: [
-                        new MessageActionRow({
-                            components: [
-                            ...(currentIndex ? [backButton] : []),
-                            ...(currentIndex + 10 < res.length ? [forwardButton] : [])
-                            ]
-                        })
+                            new MessageActionRow({
+                                components: [
+                                ...(currentIndex ? [client.utils.button().back] : []),
+                                ...(currentIndex + 10 < res.length ? [client.utils.button().forward] : [])
+                                ]
+                            })
                         ]
                     })
                 })
@@ -523,31 +506,29 @@ module.exports = [
                 }
 
                 const canFitOnOnePage = player.queue.tracks.length <= 10
-                const embedMessage = await message.loading.edit({
+                message.loading.edit({
                     embeds: [generateEmbed(0)],
                     components: canFitOnOnePage
                         ? []
-                        : [new MessageActionRow({components: [forwardButton]})]
+                        : [new MessageActionRow({components: [client.utils.button().forward]})]
                     })
     
                 if (canFitOnOnePage) return
     
-                const collector = embedMessage.createMessageComponentCollector({
-                    filter: ({user}) => user.id === message.author.id, time: 30 * 60000
-                })
-    
                 let currentIndex = 0
-                collector.on('collect', async interaction => {
+                message.loading.createMessageComponentCollector({
+                    filter: ({user}) => user.id === message.author.id, time: 30 * 60000
+                }).on('collect', interaction => {
                     interaction.customId === 'back' ? (currentIndex -= 10) : (currentIndex += 10)
-                    await interaction.update({
+                    interaction.update({
                         embeds: [generateEmbed(currentIndex)],
                         components: [
-                        new MessageActionRow({
-                            components: [
-                            ...(currentIndex ? [backButton] : []),
-                            ...(currentIndex + 10 < player.queue.tracks.length ? [forwardButton] : [])
-                            ]
-                        })
+                            new MessageActionRow({
+                                components: [
+                                ...(currentIndex ? [client.utils.button().back] : []),
+                                ...(currentIndex + 10 < player.queue.tracks.length ? [client.utils.button().forward] : [])
+                                ]
+                            })
                         ]
                     })
                 })
@@ -1564,31 +1545,29 @@ module.exports = [
                 for (let i = 0; i < player.queue.tracks.length; i++) player.queue.move(player.queue.tracks.length - i, i + 1)
 
                 const canFitOnOnePage = res.length <= 10
-                const embedMessage = await message.loading.edit({
+                message.loading.edit({
                     embeds: [generateEmbed(0)],
                     components: canFitOnOnePage
                         ? []
-                        : [new MessageActionRow({components: [forwardButton]})]
+                        : [new MessageActionRow({components: [client.utils.button().forward]})]
                     })
     
                 if (canFitOnOnePage) return
     
-                const collector = embedMessage.createMessageComponentCollector({
-                    filter: ({user}) => user.id === message.author.id, time: 30 * 60000
-                })
-    
                 let currentIndex = 0
-                collector.on('collect', async interaction => {
+                message.loading.createMessageComponentCollector({
+                    filter: ({user}) => user.id === message.author.id, time: 30 * 60000
+                }).on('collect', interaction => {
                     interaction.customId === 'back' ? (currentIndex -= 10) : (currentIndex += 10)
-                    await interaction.update({
+                    interaction.update({
                         embeds: [generateEmbed(currentIndex)],
                         components: [
-                        new MessageActionRow({
-                            components: [
-                            ...(currentIndex ? [backButton] : []),
-                            ...(currentIndex + 10 < res.length ? [forwardButton] : [])
-                            ]
-                        })
+                            new MessageActionRow({
+                                components: [
+                                ...(currentIndex ? [client.utils.button().back] : []),
+                                ...(currentIndex + 10 < res.length ? [client.utils.button().forward] : [])
+                                ]
+                            })
                         ]
                     })
                 })
@@ -1799,8 +1778,8 @@ module.exports = [
                 } else {
                     player = await create_channel_and_msg()
                     client.mysql.query(
-                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player, reactions_roles) " +
-                        `VALUES (NULL, ${message.guildId}, NULL, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}', NULL)`, (err, ins) => { if (err) console.log(err) })
+                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player) " +
+                        `VALUES (NULL, '${message.guildId}', NULL, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ channel_id: player.channel.id, message_id: player.msg.id })}')`, (err, ins) => { if (err) console.log(err) })
                 }
                 message.loading.edit({embeds:[
                     new MessageEmbed({
@@ -1814,20 +1793,6 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
-            } catch (e) {
-                client.function.main.error_log(e, client, message)
-            }
-        }
-    },
-    {
-        name: "rtest",
-        async run(client, message) {
-            try {
-                let count = 0
-                setInterval(() => {
-                    count++
-                    message.channel.send(`rate limit test | ${count}`)
-                }, 3000)
             } catch (e) {
                 client.function.main.error_log(e, client, message)
             }

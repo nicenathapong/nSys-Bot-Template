@@ -115,5 +115,24 @@ module.exports = [
             })], components: components }
             return client.utils.player_msg_playing(client)
         }
+    },
+    {
+        name: "button",
+        run() {
+            return {
+                back: new MessageButton({
+                    style: 'SECONDARY',
+                    label: "ก่อนหน้า",
+                    emoji: "⬅️",
+                    customId: 'back'
+                }),
+                forward: new MessageButton({
+                    style: 'SECONDARY',
+                    label: "หน้าถัดไป",
+                    emoji: "➡️",
+                    customId: 'forward'
+                })
+            }
+        }
     }
 ]

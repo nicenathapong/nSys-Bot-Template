@@ -90,6 +90,16 @@ module.exports = [
                 const command = args.shift().toLowerCase()
                 run_commands(command, client, message, args)
             }
+
+            if (this_guild_settings?.ranking_exp) {
+                let data = JSON.parse(this_guild_settings.ranking_exp)
+                if (data.some(m => m.member_id === message.author.id)) {
+                    const member_data = data.find(m => m.member_id === message.author.id)
+                    data.pop(member_data)
+                    data.push({ member_id: member_data.member_id, score: member_data.score + 10 })
+                } else data.push({ member_id: message.author.id, score: 10 })
+                client.mysql.query(`UPDATE \`guilds\` SET \`ranking_exp\` = '${JSON.stringify(data)}' WHERE \`guild_id\` = '${message.guild.id}'`, (err, res) => { if (err) console.log(err) })
+            }
         }
     },
     {

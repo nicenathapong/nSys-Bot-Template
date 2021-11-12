@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js')
+const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
 
 module.exports = [
     {
@@ -25,8 +25,8 @@ module.exports = [
                     client.mysql.query(`UPDATE \`guilds\` SET \`custom_prefix\` = '${args[0]}' WHERE \`guild_id\` = '${message.guildId}'`, (err, res) => { if (err) console.log(err) })
                 } else {
                     client.mysql.query(
-                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player, reactions_roles) " +
-                        `VALUES (NULL, ${message.guildId}, '${args[0]}', NULL, NULL, NULL, NULL, NULL, NULL, NULL)`, (err, ins) => { if (err) console.log(err) })
+                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player) " +
+                        `VALUES (NULL, '${message.guildId}', '${args[0]}', NULL, NULL, NULL, NULL, NULL, NULL)`, (err, ins) => { if (err) console.log(err) })
                 }
                 message.loading.edit({embeds:[
                     new MessageEmbed({
@@ -119,8 +119,8 @@ module.exports = [
                     client.mysql.query(`UPDATE \`guilds\` SET \`welcome_channel_id\` = '${channel.id}' WHERE \`guild_id\` = '${message.guildId}'`, (err, res) => { if (err) console.log(err) })
                 } else {
                     client.mysql.query(
-                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player, reactions_roles) " +
-                        `VALUES (NULL, ${message.guildId}, NULL, NULL, NULL, NULL, '${channel.id}', NULL, NULL, NULL)`, (err, ins) => { if (err) console.log(err) })
+                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player) " +
+                        `VALUES (NULL, '${message.guildId}', NULL, NULL, NULL, NULL, '${channel.id}', NULL, NULL)`, (err, ins) => { if (err) console.log(err) })
                 }
                 message.loading.edit({embeds:[
                     new MessageEmbed({
@@ -215,8 +215,8 @@ module.exports = [
                 } else {
                     auto = await create_category_and_channel()
                     client.mysql.query(
-                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player, reactions_roles) " +
-                        `VALUES (NULL, ${message.guildId}, NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ category_id: auto.category.id, channel_id: auto.channel.id })}', NULL, NULL)`, (err, ins) => { if (err) console.log(err) })
+                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player) " +
+                        `VALUES (NULL, '${message.guildId}', NULL, NULL, NULL, NULL, NULL, '${JSON.stringify({ category_id: auto.category.id, channel_id: auto.channel.id })}', NULL)`, (err, ins) => { if (err) console.log(err) })
                 }
                 message.loading.edit({embeds:[
                     new MessageEmbed({
@@ -273,60 +273,88 @@ module.exports = [
         }
     },
     {
-        name: "addreacrole",
-        category: "guild_settings",
-        information: "เพิ่ม reactions roles ให้กับข้อความ",
-        async run(client, message) {
-            try {
-                
-            } catch (e) {
-                client.function.main.error_log(e, client, message)
-            }
-        }
-    },
-    {
-        name: "rmreacrole",
-        category: "guild_settings",
-        information: "ลบ reactions roles ของข้อความ",
-        async run(client, message) {
-            try {
-                
-            } catch (e) {
-                client.function.main.error_log(e, client, message)
-            }
-        }
-    },
-    {
-        name: "reacrolelist",
-        category: "guild_settings",
-        information: "ดู reactions roles ทั้งหมดของข้อความ",
-        async run(client, message) {
-            try {
-                
-            } catch (e) {
-                client.function.main.error_log(e, client, message)
-            }
-        }
-    },
-    {
-        name: "rmallreacrole",
-        category: "guild_settings",
-        information: "ลบ reactions roles ของข้อความทั้งหมด",
-        async run(client, message) {
-            try {
-                
-            } catch (e) {
-                client.function.main.error_log(e, client, message)
-            }
-        }
-    },
-    {
         name: "rankingsystem",
+        aliases: ["rankingmode"],
         category: "guild_settings",
-        information: "เปิด Ranking System ของดิส",
+        information: "เปิด / ปิด Ranking System ของดิส",
         async run(client, message) {
             try {
-                
+                const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guildId)
+                if (this_guild_settings !== null) {
+                    if (this_guild_settings.ranking_exp === null) {
+                        client.mysql.query(`UPDATE \`guilds\` SET \`ranking_exp\` = '${JSON.stringify([])}' WHERE \`guild_id\` = '${message.guildId}'`, (err, res) => { if (err) console.log(err) })
+                    } else {
+                        message.loading.edit({embeds:[
+                            new MessageEmbed({
+                                author: {
+                                    icon_url: client.user.avatarURL(),
+                                    name: "คุณต้องการจะปิด Ranking System หรือไม่?",
+                                    url: client.config.embed_author_url
+                                },
+                                title: "หากคุณปิด ข้อมูลทั้งหมดจะถูกล้างทันทีนะคะ",
+                                color: 0x00ffff
+                            })
+                        ], components: [
+                            new MessageActionRow({
+                                components: [
+                                    new MessageButton({
+                                        style: "SUCCESS",
+                                        emoji: "👍",
+                                        label: "ใช่ ปิดได้เลย",
+                                        customId: "yes"
+                                    }),
+                                    new MessageButton({
+                                        style: "DANGER",
+                                        emoji: "👎",
+                                        label: "ไม่ ฉันไม่ต้องการปิด",
+                                        customId: "no"
+                                    })
+                                ]
+                            })
+                        ]})
+                        return message.loading.createMessageComponentCollector({ filter: ({ user }) => user.id === message.author.id, time: 30 * 60000 }).on("collect", interaction => {
+                            if (interaction.customId === "yes") {
+                                client.mysql.query(`UPDATE \`guilds\` SET \`ranking_exp\` = NULL WHERE \`guild_id\` = '${message.guildId}'`, (err, res) => { if (err) console.log(err) })
+                                return message.loading.edit({embeds:[
+                                    new MessageEmbed({
+                                        author: {
+                                            icon_url: client.user.avatarURL(),
+                                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                                            url: client.config.embed_author_url
+                                        },
+                                        title: "ปิดการใช้งาน Ranking System เรียบร้อยค่ะ",
+                                        color: 0x00ffff
+                                    })
+                                ], components: []})
+                            }
+                            message.loading.edit({embeds:[
+                                new MessageEmbed({
+                                    author: {
+                                        icon_url: client.user.avatarURL(),
+                                        name: "ยกเลิกการทำงานเรียบร้อยค่ะ",
+                                        url: client.config.embed_author_url
+                                    },
+                                    color: 0x00ffff
+                                })
+                            ], components: []})
+                        })
+                    }
+                } else {
+                    client.mysql.query(
+                        "INSERT INTO `guilds` (id, guild_id, custom_prefix, blacklist, premium, ranking_exp, welcome_channel_id, auto_voice_channel, music_player) " +
+                        `VALUES (NULL, '${message.guildId}', NULL, NULL, NULL, '${JSON.stringify([])}', NULL, NULL, NULL)`, (err, ins) => { if (err) console.log(err) })
+                }
+                message.loading.edit({embeds:[
+                    new MessageEmbed({
+                        author: {
+                            icon_url: client.user.avatarURL(),
+                            name: "ดำเนินการเรียบร้อยค่ะ!",
+                            url: client.config.embed_author_url
+                        },
+                        title: "เปิดการใช้งาน Ranking Mode เรียบร้อยค่ะ",
+                        color: 0x00ffff
+                    })
+                ]})
             } catch (e) {
                 client.function.main.error_log(e, client, message)
             }

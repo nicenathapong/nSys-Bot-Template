@@ -1,4 +1,4 @@
-const { MessageEmbed , MessageButton, MessageActionRow, Message } = require('discord.js')
+const { MessageEmbed , MessageButton, MessageActionRow } = require('discord.js')
 const { readdirSync } = require('fs')
 
 module.exports = [
@@ -33,6 +33,12 @@ module.exports = [
                     label: "เกม",
                     customId: "game"
                 })
+                const rateButton = new MessageButton({
+                    style: 'SECONDARY',
+                    emoji: "🔞",
+                    label: "18+",
+                    customId: "rate"
+                })
                 const guild_settingsButton = new MessageButton({
                     style: 'SECONDARY',
                     emoji: "⚙️",
@@ -58,8 +64,8 @@ module.exports = [
                     customId: "bot_admin"
                 })
 
-                const components1 = new MessageActionRow({components: [homeButton, basicButton, musicButton]})
-                const components2 = new MessageActionRow({components: [gameButton, guild_settingsButton, guild_adminButton]})
+                const components1 = new MessageActionRow({components: [homeButton, basicButton, musicButton, gameButton]})
+                const components2 = new MessageActionRow({components: [rateButton, guild_settingsButton, developerButton, guild_adminButton]})
                 if (client.function.main.isAdmin(client, message.author.id)) components2.components.push(bot_adminButton)
 
                 const mainEmbed = new MessageEmbed({
@@ -95,7 +101,9 @@ module.exports = [
                     })
                 }
 
-                (await message.loading.edit({embeds:[mainEmbed], components: [components1, components2]})).createMessageComponentCollector({
+                message.loading.edit({embeds:[mainEmbed], components: [components1, components2]})
+
+                message.loading.createMessageComponentCollector({
                     filter: ({ user }) => user.id === message.author.id, time: 30 * 60000
                 }).on("collect", interaction => {
                     if (interaction.customId === "home") interaction.update({embeds: [mainEmbed], components: [components1, components2]})
@@ -186,7 +194,7 @@ module.exports = [
                     new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
-                            name: `ลอง ${menu.menu} มั้ยคะ?`,
+                            name: `ลอง "${menu.menu}" มั้ยคะ?`,
                             url: pic.source
                         },
                         image: {
@@ -306,7 +314,7 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
-                const res = await client.function.api.getimgurls(args.join(" "), 3)
+                const res = await client.function.api.getimgurls(client, args.join(" "), 3)
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -430,7 +438,7 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
-                const res = await client.function.api.loo_translate(args.join(" "), "thai2loo")
+                const res = await client.function.api.loo_translate(client, args.join(" "), "thai2loo")
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -469,7 +477,7 @@ module.exports = [
                         color: 0x00ffff
                     })
                 ]})
-                const res = await client.function.api.loo_translate(args.join(" "), "loo2thai")
+                const res = await client.function.api.loo_translate(client, args.join(" "), "loo2thai")
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
@@ -488,6 +496,45 @@ module.exports = [
             } catch (e) {
                 client.function.main.error_log(e, client, message)
             }
+        }
+    },
+    {
+        name: "rank",
+        category: "basic",
+        information: "ดูว่าคุณอยู่อันดับที่เท่าไหร่ของดิส",
+        async run(client, message) {
+            const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guildId)
+            if (!this_guild_settings?.ranking_exp) return message.loading.edit({embeds:[
+                new MessageEmbed({
+                    author: {
+                        icon_url: client.user.avatarURL(),
+                        name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                        url: client.config.embed_author_url
+                    },
+                    title: "ดิสนี้ยังไม่ได้เปิด Ranking System ค่ะ",
+                    description: `สามารถเปิดได้โดยให้แอดมินดิส\nใช้คำสั่ง \`${client.function.main.get_prefix(client, message)}rankingmode\` ได้เลยค่ะ`,
+                    color: 0x00ffff
+                })
+            ]})
+            const data = JSON.parse(this_guild_settings.ranking_exp).sort((a, b) => a.score - b.score).reverse()
+            const this_member = data.find(m => m.member_id === message.author.id) ? data.find(m => m.member_id === message.author.id) : { member_id: message.author.id, score: 10 } 
+            message.loading.edit({embeds:[
+                new MessageEmbed({
+                    author: {
+                        icon_url: message.author.avatarURL(),
+                        name: message.author.tag
+                    },
+                    title: `Level ของคุณในตอนนี้ คือ ${(this_member.score / 1000).toLocaleString()} | ${this_member.score.toLocaleString()} คะแนน`,
+                    description: `คุณเป็นอันดับที่ ${data.includes(this_member) ? (data.indexOf(this_member) + 1).toLocaleString() : member.guild.memberCount.toLocaleString()} ของดิส`,
+                    fields: [
+                        {
+                            name: `${message.guild.name} Level Ranking`,
+                            value: data.slice(0, 14).map(m => `**${(data.indexOf(m) + 1).toLocaleString()})** *${(m.score / 1000).toLocaleString()}* | <@${m.member_id}>`).join("\n")
+                        }
+                    ],
+                    color: 0x00ffff
+                })
+            ]})
         }
     }
 ]
