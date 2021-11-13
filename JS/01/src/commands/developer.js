@@ -36,8 +36,8 @@ module.exports = [
                     cpu: (process.cpuUsage().user + process.cpuUsage().system) / Object.values(require('os').cpus()[0].times).reduce((acc, tv) => acc + tv, 0),
                     ram: process.memoryUsage().heapUsed / 1024 / 1024
                 }))
-                const self_db = await client.function.api.db_ping(client, 0)
-                const core_db = await client.function.api.db_ping(client, 1)
+                const self_db = await client.function.database.db_ping(client, 0)
+                const core_db = await client.function.database.db_ping(client, 1)
                 const api_stats = await client.function.api.stats(client)
                 message.loading.edit({embeds:[
                     new MessageEmbed({
@@ -331,7 +331,7 @@ module.exports = [
         information: "ดูรายการเมนูทั้งหมดในคลังเมนู",
         async run(client, message, args) {
             try {
-                const menus = await client.function.api.core_menulist(client)
+                const menus = await client.function.database.core_menulist(client)
 
                 if (menus.length < 1) return message.loading.edit({embeds:[
                     new MessageEmbed({

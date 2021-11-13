@@ -184,13 +184,8 @@ module.exports = [
         async run(client, message) {
             try {
                 async function create_category_and_channel() {
-                    const category = await message.guild.channels.create("create room | nSys", {
-                        type: "GUILD_CATEGORY"
-                    })
-                    const channel = await message.guild.channels.create("join - create your room", {
-                        type: 'GUILD_VOICE',
-                        parent: category
-                    })
+                    const category = await message.guild.channels.create(`create room | ${client.user.username}`, { type: "GUILD_CATEGORY" })
+                    const channel = await message.guild.channels.create("join - create your room", { type: 'GUILD_VOICE', parent: category })
                     return {category: category, channel: channel}
                 }
                 const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guildId)

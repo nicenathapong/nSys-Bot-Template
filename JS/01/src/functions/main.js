@@ -48,11 +48,16 @@ module.exports = [
                 })
                 console.log(`[cluster ${client.cluster.id}] Reload extension [${commandFile.replace(".js", "")}] finish!`)
             })
+            delete require.cache[require.resolve("../slashcommands")]
+            client.slashcommands_arr = []
             require("../slashcommands").forEach(slc => {
                 client.commands.delete(slc.data.name)
                 client.commands.set(slc.data.name, slc)
+                client.slashcommands_arr.push(slc.data.toJSON())
                 console.log(`[cluster ${client.cluster.id}] Reload SlashCommands [${slc.data.name}] finish!`)
             })
+            client.guilds.cache.forEach(guild => { try { guild.commands.set(client.slashcommands_arr) } catch (e) { console.log(e) } })
+            delete require.cache[require.resolve("../events")]
             require("../events").forEach(event => {
                 client.removeAllListeners(event.name)
                 client.on(event.name, event.run.bind(null, client))

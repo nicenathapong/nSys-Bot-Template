@@ -55,6 +55,7 @@ module.exports = [
                 try { guild.commands.set(client.slashcommands_arr) } catch (e) { console.log(e) }
 
                 const this_guild_settings = await client.function.database.get_this_guild_settings(client, guild.id)
+                
                 if (this_guild_settings?.music_player) {
                     let channel, msg
                     try {
@@ -71,6 +72,24 @@ module.exports = [
                         }
                         msg = await channel.send(client.utils.player_msg_default(client))
                         client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = '${JSON.stringify({ channel_id: channel.id, message_id: msg.id })}' WHERE \`guild_id\` = '${guild.id}'`, (err, res) => { if (err) console.log(err) })
+                    }
+                }
+                if (this_guild_settings?.auto_voice_channel) {
+                    let channel = guild.channels.cache.get(JSON.parse(this_guild_settings.auto_voice_channel).channel_id)
+                    let category = guild.channels.cache.get(JSON.parse(this_guild_settings.auto_voice_channel).category_id)
+                    if (!category && !channel) {
+                        category = await guild.channels.create(`create room | ${client.user.username}`, { type: "GUILD_CATEGORY" })
+                        channel = await guild.channels.create("join - create your room", { type: 'GUILD_VOICE', parent: category })
+                        client.mysql.query(`UPDATE \`guilds\` SET \`auto_voice_channel\` = '${JSON.stringify({ category_id: category.id, channel_id: channel.id })}' WHERE \`guild_id\` = '${channel.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                    }
+                    if (!channel && category) {
+                        channel = await guild.channels.create("join - create your room", { type: 'GUILD_VOICE', parent: category })
+                        client.mysql.query(`UPDATE \`guilds\` SET \`auto_voice_channel\` = '${JSON.stringify({ category_id: category.id, channel_id: channel.id })}' WHERE \`guild_id\` = '${channel.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                    }
+                    if (channel && !category) {
+                        category = await guild.channels.create(`create room | ${client.user.username}`, { type: "GUILD_CATEGORY" })
+                        channel.setParent(category)
+                        client.mysql.query(`UPDATE \`guilds\` SET \`auto_voice_channel\` = '${JSON.stringify({ category_id: category.id, channel_id: channel.id })}' WHERE \`guild_id\` = '${channel.guild.id}'`, (err, res) => { if (err) console.log(err) })
                     }
                 }
             })
@@ -191,7 +210,7 @@ module.exports = [
         async run(client, channel) {
             const this_guild_settings = await client.function.database.get_this_guild_settings(client, channel.guildId)
             if (this_guild_settings?.music_player && channel.id === JSON.parse(this_guild_settings?.music_player).channel_id) {
-                const new_channel = await channel.guild.channels.create(`🎶 ${client.user.username}`, { type: "GUILD_TEXT" })
+                const new_channel = await channel.guild.channels.create(`🎶 ${client.user.username}`, { type: "GUILD_TEXT", parent: channel.parentId })
                 const msg = await new_channel.send(client.utils.player_msg_default(client))
                 client.mysql.query(`UPDATE \`guilds\` SET \`music_player\` = '${JSON.stringify({ channel_id: new_channel.id, message_id: msg.id })}' WHERE \`guild_id\` = '${channel.guild.id}'`, (err, res) => { if (err) console.log(err) })
                 const player = client.manager.players.get(channel.guildId)
@@ -200,6 +219,18 @@ module.exports = [
                         player.msg = msg
                         player.msg.edit(client.utils.player_msg_playing(client, player))
                     }
+                }
+            }
+            if (this_guild_settings?.auto_voice_channel) {
+                if (channel.id === JSON.parse(this_guild_settings.auto_voice_channel).channel_id) {
+                    const new_channel = await channel.guild.channels.create("join - create you room", { type: "GUILD_VOICE", parent: channel.parentId })
+                    client.mysql.query(`UPDATE \`guilds\` SET \`auto_voice_channel\` = '${JSON.stringify({ category_id: channel.parentId, channel_id: new_channel.id })}' WHERE \`guild_id\` = '${channel.guild.id}'`, (err, res) => { if (err) console.log(err) })
+                }
+                if (channel.id === JSON.parse(this_guild_settings.auto_voice_channel).category_id) {
+                    const new_category = await channel.guild.channels.create(`create room | ${client.user.username}`, { type: "GUILD_CATEGORY" })
+                    const old_channel = channel.guild.channels.cache.get(JSON.parse(this_guild_settings.auto_voice_channel).channel_id)
+                    old_channel.setParent(new_category)
+                    client.mysql.query(`UPDATE \`guilds\` SET \`auto_voice_channel\` = '${JSON.stringify({ category_id: new_category.id, channel_id: old_channel.id })}' WHERE \`guild_id\` = '${channel.guild.id}'`, (err, res) => { if (err) console.log(err) })
                 }
             }
         }
@@ -223,6 +254,17 @@ module.exports = [
 async function run_commands(command, client, message, args) {
     const cmd = client.commands.find(cmd => cmd.aliases?.includes(command)) ? client.commands.find(cmd => cmd.aliases?.includes(command)) : client.commands.get(command)
     if (!cmd) return
+    if (cmd.category === "rate" && !message.channel.nsfw) return message.reply({embeds:[
+        new MessageEmbed({
+            author: {
+                icon_url: client.user.avatarURL(),
+                name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                url: client.config.embed_author_url
+            },
+            title: "คำสั่งนี้ใช้ได้แค่กับห้อง NSFW เท่านั้นนะคะ",
+            color: 0x00ffff
+        })
+    ]})
     message.loading = await message.reply({embeds:[
         new MessageEmbed({
             author: {

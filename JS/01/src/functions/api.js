@@ -70,31 +70,34 @@ module.exports = [
         }
     },
     {
-        name: "db_ping",
-        run(client, db) {
+        name: "rule34",
+        run(tags) {
             return new Promise((resolve, reject) => {
-                const startTime = new Date()
-                client[db === 0 ? "mysql" : "datacore"].query(`SELECT table_name AS "table", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "size" FROM information_schema.TABLES WHERE table_schema = "${db === 0 ? client.user.username : "nDataCore"}" ORDER BY (data_length + index_length) DESC`, (err, res) => {
-                    if (res.length > 0) {
-                        var endTime = new Date()
-                        resolve({ size: res.map(r => r.size).reduce((a, b) => a + b), ping: endTime.getTime() - startTime.getTime() })
-                    } if (err) {
-                        reject("[err] database error.", err)
-                    }
+                request.get({
+                    url: encodeURI(`https://rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=1000&tags=${tags}`),
+                    time: true
+                }, (err, res) => {
+                    if (err) resolve("NO_PIC_FROM_RULE34")
+                    resolve(JSON.parse(res.body).map(p => p.file_url))
                 })
             })
         }
     },
     {
-        name: "core_menulist",
-        run(client) {
+        name: "getnhtrandom",
+        run() {
+            const url = `https://nhentai.net/g/${Math.floor(Math.random() * 300000)}/`
             return new Promise((resolve, reject) => {
-                client.datacore.query("SELECT * FROM `food`", (err, res) => {
-                    if (err) reject("[err] database error.", err)
-                    if (res.length > 0) {
-                        resolve(res)
-                    }
-                    else resolve([])
+                request.get({
+                    url: url,
+                    time: true
+                }, (err, res) => {
+                    if (err) reject("[err] API error.", err)
+                    resolve({
+                        data: res.body,
+                        url: url,
+                        ms: res.elapsedTime
+                    })
                 })
             })
         }
