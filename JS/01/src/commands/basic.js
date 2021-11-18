@@ -81,7 +81,7 @@ module.exports = [
                     color: 0x00ffff
                 })
 
-                function generateEmbed(category) {
+                async function generateEmbed(category) {
                     let word = client.user.username
                     if (category === "basic") word = "นี่คือคำสั่งทั่วไปของบอทค่ะ!"
                     if (category === "music") word = "นี่คือคำสั่งในหมวดหมู่เพลงของบอทค่ะ"
@@ -90,13 +90,14 @@ module.exports = [
                     if (category === "developer") word = "นี่คือคำสั่งในหมวดหมู่ผู้พัฒนาค่ะ"
                     if (category === "guild_admin") word = "นี่คือคำสั่งในหมวดหมู่แอดมินเซิร์ฟเวอร์ค่ะ"
                     if (category === "bot_admin") word = "นี่คือคำสั่งในหมวดหมู่แอดมินของบอทค่ะ"
+                    const prefix = await client.function.main.get_prefix(client, message)
                     return new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
                             name: word,
                             url: client.config.embed_author_url
                         },
-                        description: client.commands.filter(cm => cm.category === category).map(cm => `**${client.function.main.get_prefix(client, message) + cm.name}** - ${cm.information}`).join("\n"),
+                        description: client.commands.filter(cm => cm.category === category).map(cm => `**${prefix + cm.name}** - ${cm.information}`).join("\n"),
                         color: 0x00ffff
                     })
                 }
@@ -107,8 +108,8 @@ module.exports = [
                     filter: ({ user }) => user.id === message.author.id, time: 30 * 60000
                 }).on("collect", interaction => {
                     if (interaction.customId === "home") interaction.update({embeds: [mainEmbed], components: [components1, components2]})
-                    readdirSync("./src/commands").map(f => f.replace(".js", "")).forEach(category => {
-                        if (interaction.customId === category) interaction.update({embeds:[generateEmbed(category)], components: [components1, components2]})
+                    readdirSync("./src/commands").map(f => f.replace(".js", "")).forEach(async category => {
+                        if (interaction.customId === category) interaction.update({embeds:[await generateEmbed(category)], components: [components1, components2]})
                     })
                 })
 
@@ -310,7 +311,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุคำที่ต้องการจะให้ค้นหาด้วยนะคะ",
-                        description: `เช่น \`${client.function.api.get_prefix(client, message)}ps พิซซ่า\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}ps พิซซ่า\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -434,7 +435,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุคำที่ต้องการจะให้แปลด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}loo หลับ\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}loo หลับ\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -473,7 +474,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุคำที่ต้องการจะให้แปลด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}tloo สับหลุบ\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}tloo สับหลุบ\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -512,7 +513,7 @@ module.exports = [
                         url: client.config.embed_author_url
                     },
                     title: "ดิสนี้ยังไม่ได้เปิด Ranking System ค่ะ",
-                    description: `สามารถเปิดได้โดยให้แอดมินดิส\nใช้คำสั่ง \`${client.function.main.get_prefix(client, message)}rankingmode\` ได้เลยค่ะ`,
+                    description: `สามารถเปิดได้โดยให้แอดมินดิส\nใช้คำสั่ง \`${await client.function.main.get_prefix(client, message)}rankingmode\` ได้เลยค่ะ`,
                     color: 0x00ffff
                 })
             ]})

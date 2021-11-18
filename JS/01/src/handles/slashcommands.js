@@ -7,7 +7,7 @@ module.exports = (client) => {
     require("../slashcommands").forEach(command => {
         if (command.data.name.length > 0) {
             client.slashcommands.set(command.data.name, command)
-            client.slashcommands_arr.push(command.data.toJSON())
+            client.slashcommands_arr.push(command.data)
             all_commands_status.push(new command_status(client.cluster.id, command.data.name, "ready"))
         } else all_commands_status.push(new command_status(client.cluster.id, command.data.name, "not_ready"))
     })

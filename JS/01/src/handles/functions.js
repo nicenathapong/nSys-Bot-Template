@@ -3,7 +3,7 @@ const { readdirSync } = require('fs')
 module.exports = (client) => {
     client.function = {}
     let all_functions_status = []
-    readdirSync("./src/functions").forEach(functionFile => {
+    readdirSync(__dirname + (process.platform === "win32" ? "\\..\\..\\src\\functions" : "/../../src/functions")).forEach(functionFile => {
         client.function[functionFile.replace(".js", "")] = {}
         require("../functions/" + functionFile).forEach(func => {
             if (func.run) {

@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js')
+const { MessageEmbed , MessageActionRow } = require('discord.js')
 const { SpotifyTrack, SpotifyAlbum, SpotifyPlaylist, SpotifyArtist } = require('@liliaclient1/spotify')
 const { splitBar } = require('string-progressbar') 
 const request = require('request')
@@ -82,12 +82,13 @@ module.exports = [
     {
         name: "player_events",
         async run(client, message, player) {
+            const this_guild_settings = await client.function.database.get_this_guild_settings(client, player.guild)
             player.queue.on("trackStart", async queue => {
+                if (player.timeout) clearTimeout(player.timeout)
                 message.guild.members.cache.get(client.user.id).setNickname(`🎶 ${queue.title.slice(0,28)}`)
                 if (player.msg) {
                     return player.msg.edit(client.utils.player_msg_playing(client, player))
                 }
-                const this_guild_settings = await client.function.database.get_this_guild_settings(client, player.guild)
                 if (this_guild_settings?.music_player) {
                     let channel, msg
                     try {
@@ -121,6 +122,11 @@ module.exports = [
                         if (!player.playing) player.queue.start()
                         return
                     }
+                }
+                if (player.queue.tracks.length === 0) {
+                    player.timeout = setTimeout(() => {
+                        client.manager.destroy(player.guild)
+                    }, 30000)
                 }
             })
         }
@@ -252,8 +258,8 @@ module.exports = [
                             name: "ดำเนินการเรียบร้อยค่ะ!",
                             url: client.config.embed_author_url
                         },
-                        title: "Platlist",
-                        url: args.join(" "),
+                        title: "Playlist",
+                        url: message.content,
                         description: `เพิ่มเพลงจากเพลย์ลิสต์ทั้งหมด ${res.length} เพลง ไปยังคิวเรียบร้อยค่ะ!`,
                         thumbnail: {
                             url: `https://img.youtube.com/vi/${current[0].info.identifier}/mqdefault.jpg`
@@ -271,25 +277,27 @@ module.exports = [
                     embeds: [generateEmbed(0)],
                     components: canFitOnOnePage
                         ? []
-                        : [new MessageActionRow({components: [forwardButton]})]
-                    }).then(msg => setTimeout(() => msg.delete(), 10000))
+                        : [new MessageActionRow({components: [client.utils.button().forward]})]
+                    })
         
                 if (canFitOnOnePage) return
+
+                setTimeout(() => embedMessage.delete(), 10000)
         
                 const collector = embedMessage.createMessageComponentCollector({
                     filter: ({user}) => user.id === message.author.id, time: 30 * 60000
                 })
         
                 let currentIndex = 0
-                collector.on('collect', async interaction => {
+                collector.on('collect', interaction => {
                     interaction.customId === 'back' ? (currentIndex -= 10) : (currentIndex += 10)
-                    await interaction.update({
+                    interaction.update({
                         embeds: [generateEmbed(currentIndex)],
                         components: [
                         new MessageActionRow({
                             components: [
-                            ...(currentIndex ? [backButton] : []),
-                            ...(currentIndex + 10 < res.length ? [forwardButton] : [])
+                            ...(currentIndex ? [client.utils.button().back] : []),
+                            ...(currentIndex + 10 < res.length ? [client.utils.button().forward] : [])
                             ]
                         })
                         ]
@@ -313,7 +321,7 @@ module.exports = [
     {
         name: "player_manager",
         async run(client, interaction) {
-            interaction.deferUpdate()
+            if (["looptrk","previous","play","skip","loopq","volup","voldown","leave","mute","sf"].includes(interaction.customId)) interaction.deferUpdate()
             const player = client.manager.players.get(interaction.guildId)
             if (!player) return interaction.channel.send({embeds:[
                 new MessageEmbed({

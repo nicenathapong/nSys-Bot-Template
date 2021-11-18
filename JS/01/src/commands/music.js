@@ -226,7 +226,7 @@ module.exports = [
                             name: "ดำเนินการเรียบร้อยค่ะ!",
                             url: client.config.embed_author_url
                         },
-                        title: "Platlist",
+                        title: "Playlist",
                         url: args.join(" "),
                         description: `เพิ่มเพลงจากเพลย์ลิสต์ทั้งหมด ${res.length} เพลง ไปยังคิวเรียบร้อยค่ะ!`,
                         thumbnail: {
@@ -663,7 +663,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุระดับเสียงที่ต้องการปรับด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}vol 38\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}vol 38\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -675,7 +675,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุระดับเสียงที่ต้องการปรับให้ถูกต้องด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}vol 38\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}vol 38\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -882,7 +882,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุโหมดให้ถูกต้องด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}loop / loop queue\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}loop / loop queue\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -1008,7 +1008,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุตำแหน่งของเพลงที่ต้องการจะกรอด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}seek 1:23\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}seek 1:23\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -1020,7 +1020,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุตำแหน่งของเพลงให้ถูกต้องด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}seek 1:23\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}seek 1:23\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -1244,7 +1244,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดระบุแหน่งเพลงที่ต้องการจะให้ข้ามไปถึงด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}skipto 5\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}skipto 5\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -1376,7 +1376,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "โปรดเพลงที่ต้องการจะให้ย้ายให้ถูกต้องด้วยนะคะ",
-                        description: `เช่น \`${client.function.main.get_prefix(client, message)}move 3 1\``,
+                        description: `เช่น \`${await client.function.main.get_prefix(client, message)}move 3 1\``,
                         color: 0x00ffff
                     })
                 ]})
@@ -1617,7 +1617,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "สุ่มเพลงในคิวเรียบร้อยค่ะ",
-                        description: `\`${client.function.main.get_prefix(client, message)}queue\` เพื่อดูการเปลี่ยนแปลงได้เลยค่ะ`,
+                        description: `\`${await client.function.main.get_prefix(client, message)}queue\` เพื่อดูการเปลี่ยนแปลงได้เลยค่ะ`,
                         color: 0x00ffff
                     })
                 ]})

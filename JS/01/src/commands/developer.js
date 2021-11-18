@@ -6,14 +6,14 @@ module.exports = [
     {
         name: "ping",
         category: "developer",
-        information: "ตรวจสอบความหน่วงของบอท",
+        information: "ตรวจสอบความหน่วงของตัวบอท",
         async run(client, message) {
             try {
                 message.loading.edit({embeds:[
                     new MessageEmbed({
                         author: {
                             icon_url: client.user.avatarURL(),
-                            name: `ปิงของบอทตอนนี้ อยู่ที่ ${client.ws.ping}ms ค่ะ!`,
+                            name: `ปิงของบอทตอนนี้ อยู่ที่ ${client.ws.ping.toFixed(0)}ms ค่ะ!`,
                             url: client.config.embed_author_url
                         },
                         color: 0x00ffff
@@ -21,7 +21,7 @@ module.exports = [
                 ]})
             } catch (e) {
                 client.function.main.error_log(e, client, message)
-            }
+            } 
         }
     },
     {
@@ -33,7 +33,7 @@ module.exports = [
                 const guilds = [].concat.apply([], await client.cluster.broadcastEval(client => client.guilds.cache))
                 const clusters = await client.cluster.broadcastEval(client => ({
                     ping: client.ws.ping,
-                    cpu: (process.cpuUsage().user + process.cpuUsage().system) / Object.values(require('os').cpus()[0].times).reduce((acc, tv) => acc + tv, 0),
+                    cpu: ((process.cpuUsage().user + process.cpuUsage().system) / Object.values(require('os').cpus()[0].times).reduce((acc, tv) => acc + tv, 0)) / 10,
                     ram: process.memoryUsage().heapUsed / 1024 / 1024
                 }))
                 const self_db = await client.function.database.db_ping(client, 0)
@@ -64,12 +64,12 @@ module.exports = [
                             },
                             {
                                 name: "CPU Usage",
-                                value: (clusters.map(d => d.cpu).reduce((a, b) => a + b)).toFixed(2) + "%",
+                                value: clusters.map(d => d.cpu).reduce((a, b) => a + b).toFixed(2) + "%",
                                 inline: true
                             },
                             {
                                 name: "Memory Usage",
-                                value: (clusters.map(d => d.ram).reduce((a, b) => a + b) / clusters.length).toFixed(2) + " MB",
+                                value: clusters.map(d => d.ram).reduce((a, b) => a + b).toFixed(2) + " MB",
                                 inline: true
                             },
                             {
@@ -122,7 +122,7 @@ module.exports = [
                     member: client.guilds.cache.map(g => g.memberCount).reduce((a, b) => a + b),
                     channel: client.channels.cache.size,
                     ping: client.ws.ping,
-                    cpu: (process.cpuUsage().user + process.cpuUsage().system) / Object.values(require('os').cpus()[0].times).reduce((acc, tv) => acc + tv, 0),
+                    cpu: ((process.cpuUsage().user + process.cpuUsage().system) / Object.values(require('os').cpus()[0].times).reduce((acc, tv) => acc + tv, 0)) / 10,
                     ram: process.memoryUsage().heapUsed / 1024 / 1024
                 }))
                 function generateEmbed(index) {
@@ -237,7 +237,7 @@ module.exports = [
                             },
                             {
                                 name: "CPU Usage",
-                                value: current.stats.cpu.lavalinkLoad.toFixed(2),
+                                value: current.stats.cpu.lavalinkLoad.toFixed(2) + "%",
                                 inline: true
                             },
                             {
@@ -341,7 +341,7 @@ module.exports = [
                             url: client.config.embed_author_url
                         },
                         title: "สามารถเพิ่มเมนูลงในคลังได้",
-                        description: `โดยใช้คำสั่ง ${client.function.main.get_prefix(client, message)} ได้เลยค่ะ!`,
+                        description: `โดยใช้คำสั่ง ${await client.function.main.get_prefix(client, message)} ได้เลยค่ะ!`,
                         color: 0x00ffff
                     })
                 ]})

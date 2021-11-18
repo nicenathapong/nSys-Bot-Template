@@ -3,9 +3,12 @@ const { SlashCommandBuilder } = require('@discordjs/builders')
 
 module.exports = [
     {
-        data: new SlashCommandBuilder()
-            .setName("ping")
-            .setDescription("ตรวจสอบความหน่วงของบอท"),
+        data: {
+            name: "ping",
+            description: "ตรวจสอบความหน่วงของบอท",
+            option: [],
+            defaultPermission: undefined
+        },
         async run(client, interaction) {
             interaction.reply({embeds:[
                 new MessageEmbed({

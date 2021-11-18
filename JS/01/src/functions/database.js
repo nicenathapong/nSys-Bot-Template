@@ -12,6 +12,20 @@ module.exports = [
         }
     },
     {
+        name: "admin_list",
+        run(client) {
+            return new Promise((resolve, reject) => {
+                client.mysql.query("SELECT * FROM `admin_list`", (err, res) => {
+                    if (err) reject("[err] database error.", err)
+                    if (res.length > 0) {
+                        resolve(res.map(r => r.user_id))
+                    }
+                    else resolve([])
+                })
+            })
+        }
+    },
+    {
         name: "db_ping",
         run(client, db) {
             return new Promise((resolve, reject) => {

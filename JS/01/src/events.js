@@ -1,58 +1,36 @@
-const { MessageEmbed , MessageButton , MessageActionRow} = require('discord.js')
+const { MessageEmbed , Permissions } = require('discord.js')
+const { REST } = require('@discordjs/rest')
+const { Routes } = require('discord-api-types/v9')
 const color = require('colors')
-
-const backButton = new MessageButton({
-    style: 'SECONDARY',
-    label: "ก่อนหน้า",
-    emoji: "⬅️",
-    customId: 'back'
-})
-const forwardButton = new MessageButton({
-    style: 'SECONDARY',
-    label: "หน้าถัดไป",
-    emoji: "➡️",
-    customId: 'forward'
-})
 
 module.exports = [
     {
         name: "ready",
         async run(client) {
             await client.manager.init(client.user.id)
+            require("./handles/websocket")(client)
             console.log(
                 "\n---------------------------------------------".yellow + "\n" +
                 `nSystem bot is starting up! | Cluster ${client.cluster.id}`.yellow + "\n" +
                 `Login as ${client.user.tag} | ${client.user.id}`.yellow + "\n" +
                 "---------------------------------------------".yellow
             )
-            client.cluster.broadcastEval(client => client.isReady()).then(d => {
-                if (!d.includes(false)) {
-                    let index = 0
-                    setInterval(async () => {
-                        const guilds = [].concat.apply([], await client.cluster.broadcastEval(c => c.guilds.cache))
-                        const activities = [
-                            `${guilds.length.toLocaleString()} servers`,
-                            "คิดถึงเขาจังเลยน้า..",
-                            `${guilds.map(g => g.memberCount).reduce((a, b) => a + b).toLocaleString()} members`,
-                        ]
-                        client.cluster.broadcastEval((client, context) => {
-                            client.user.setActivity(`${context.prefix}help | ${context.activity}`, { type: 'WATCHING' })
-                        }, {
-                            context: {
-                                prefix: client.config.prefix,
-                                activity: activities[index]
-                            }
-                        })
-                        index++
-                        if (index === activities.length - 1) index = 0
-                    }, 10000)
+            
+            const rest = new REST({ version: '9' }).setToken(client.token)
+            try {
+                console.log(`[cluster ${client.cluster.id}] Started refreshing application (/) commands.`)
+                if (client.config.loadSlashGlobal) {
+                    await rest.put(Routes.applicationCommands(client.user.id), { body: client.slashcommands_arr })
+                } else {
+                    client.config.guildTest.forEach(async id => {
+                        await rest.put(Routes.applicationGuildCommands(client.user.id, id), { body: client.slashcommands_arr })
+                    })
                 }
-            })
+                console.log(`[cluster ${client.cluster.id}] Successfully reloaded application (/) commands.`)
+            } catch (e) { console.log(e) }
 
             client.guilds.cache.forEach(async guild => {
                 guild.members.cache.get(client.user.id).setNickname(client.user.username)
-                
-                try { guild.commands.set(client.slashcommands_arr) } catch (e) { console.log(e) }
 
                 const this_guild_settings = await client.function.database.get_this_guild_settings(client, guild.id)
                 
@@ -101,7 +79,7 @@ module.exports = [
             if (message.author.bot) return
             const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guildId)
 
-            if (this_guild_settings?.music_player && message.channel.id === JSON.parse(this_guild_settings?.music_player).channel_id) return await play_music(client, message, this_guild_settings)
+            if (this_guild_settings?.music_player && message.channel.id === JSON.parse(this_guild_settings?.music_player).channel_id) return await client.function.music.play_music(client, message, this_guild_settings)
 
             const prefix = this_guild_settings?.custom_prefix ? this_guild_settings.custom_prefix : client.config.prefix
             if (message.content.startsWith(prefix)) {
@@ -173,7 +151,7 @@ module.exports = [
         async run(client, interaction) {
             if (interaction.componentType === "BUTTON") {
                 const this_guild_settings = await client.function.database.get_this_guild_settings(client, interaction.guildId)
-                if (this_guild_settings?.music_player && interaction.channelId === JSON.parse(this_guild_settings?.music_player).channel_id) await client.function.player_manager(client, interaction)
+                if (this_guild_settings?.music_player && interaction.channelId === JSON.parse(this_guild_settings?.music_player).channel_id) await client.function.music.player_manager(client, interaction)
             }
             if (!interaction.isCommand()) return
             const command = client.slashcommands.get(interaction.commandName)
@@ -248,12 +226,74 @@ module.exports = [
             const this_guild_settings = await client.function.database.get_this_guild_settings(client, member.guild.id)
             if (this_guild_settings?.welcome_channel_id) client.function.main.sendWelcomePic(member, member.guild.channels.cache.get(this_guild_settings.welcome_channel_id), "LEFT")
         }
+    },
+    {
+        name: "guildCreate",
+        async run(client, guild) {
+            client.cluster.broadcastEval(async (client, { log_channels , embed }) => {
+                log_channels.forEach(async chid => {
+                    const channel = await client.channels.fetch(chid)
+                    if (channel) channel.send({embeds:[embed]})
+                })
+            },{
+                context: {
+                    log_channels: client.config.log_channels,
+                    embed: new MessageEmbed({
+                        author: {
+                            name: "New invite!",
+                            icon_url: guild.iconURL(),
+                            url: client.config.embed_author_url
+                        },
+                        title: guild.name,
+                        description: `ขณะนี้จำนวนเซิร์ฟเวอร์ของบอททั้งหมดอยู่ที่ ${(await client.guilds.fetch()).length.toLocaleString()} ค่ะ`,
+                        color: 0x00ffff
+                    })
+                }
+            })
+        }
+    },
+    {
+        name: "guildDelete",
+        async run(client, guild) {
+            client.cluster.broadcastEval(async (client, { log_channels , embed }) => {
+                log_channels.forEach(async chid => {
+                    const channel = await client.channels.fetch(chid)
+                    if (channel) channel.send({embeds:[embed]})
+                })
+            },{
+                context: {
+                    log_channels: client.config.log_channels,
+                    embed: new MessageEmbed({
+                        author: {
+                            name: "Kicked detected!",
+                            icon_url: guild.iconURL(),
+                            url: client.config.embed_author_url
+                        },
+                        title: guild.name,
+                        description: `ขณะนี้จำนวนเซิร์ฟเวอร์ของบอททั้งหมดอยู่ที่ ${(await client.guilds.fetch()).length.toLocaleString()} ค่ะ`,
+                        color: 0x00ffff
+                    })
+                }
+            })
+        }
     }
 ]
 
 async function run_commands(command, client, message, args) {
     const cmd = client.commands.find(cmd => cmd.aliases?.includes(command)) ? client.commands.find(cmd => cmd.aliases?.includes(command)) : client.commands.get(command)
     if (!cmd) return
+    if (cmd.category === "bot_admin" && !client.function.main.isAdmin(client, message.author.id)) return
+    if (cmd.category === "guild_admin" && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) return message.reply({embeds:[
+        new MessageEmbed({
+            author: {
+                icon_url: client.user.avatarURL(),
+                name: "ไม่สามารถดำเนินการได้ค่ะ!",
+                url: client.config.embed_author_url
+            },
+            title: "คำสั่งนี้ใช้ได้แอดมินของดิสเท่านั้นค่ะ",
+            color: 0x00ffff
+        })
+    ]})
     if (cmd.category === "rate" && !message.channel.nsfw) return message.reply({embeds:[
         new MessageEmbed({
             author: {
@@ -280,7 +320,7 @@ async function run_commands(command, client, message, args) {
         console.log(`\nCommand use! | ${message.content} | ${message.guild.name} | ${message.author.tag}`)
         client.cluster.broadcastEval(async (client, { log_channels , embed }) => {
             log_channels.forEach(async chid => {
-                const channel = await client.channels.cache.get(chid)
+                const channel = await client.channels.fetch(chid)
                 if (channel) channel.send({embeds:[embed]})
             })
         },{

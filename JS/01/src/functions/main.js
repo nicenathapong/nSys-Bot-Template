@@ -1,8 +1,10 @@
 const { MessageEmbed , MessageAttachment } = require('discord.js')
+const { REST } = require('@discordjs/rest')
+const { Routes } = require('discord-api-types/v9')
 const { registerFont , createCanvas , loadImage } = require('canvas')
 const { readdirSync } = require('fs')
 
-registerFont( './data/welcome/FC_Iconic_Bold.ttf', { family: "FC_Iconic_Bold" } )
+registerFont(__dirname + (process.platform === "win32" ? "\\..\\..\\data\\welcome\\FC_Iconic_Bold.ttf" : "/../../data/welcome/FC_Iconic_Bold.ttf"), { family: "FC_Iconic_Bold" } )
 
 module.exports = [
     {
@@ -16,9 +18,30 @@ module.exports = [
                         icon_url: client.user.avatarURL({ dynamic:true }),
                         url: client.config.embed_author_url
                     },
+                    title: "โปรดรอสักครู่ แล้วลองอีกครั้งนะคะ",
                     color: 0x00ffff
                 })
             ]})
+            client.cluster.broadcastEval(async (client, { log_channels , embed }) => {
+                log_channels.forEach(async chid => {
+                    const channel = await client.channels.fetch(chid)
+                    if (channel) channel.send({embeds:[embed]})
+                })
+            },{
+                context: {
+                    log_channels: client.config.log_channels,
+                    embed: new MessageEmbed({
+                        author: {
+                            name: "Error detected! | " + message.guild.name,
+                            icon_url: message.guild.iconURL(),
+                            url: client.config.embed_author_url
+                        },
+                        title: message.content,
+                        description: "```js" + err + "```",
+                        color: 0x00ffff
+                    })
+                }
+            })
         }
     },
     {
@@ -28,8 +51,17 @@ module.exports = [
         }
     },
     {
+        name: "isNum",
+        run(str) {
+            if (typeof str != "string") return false
+            return !isNaN(str) && !isNaN(parseFloat(str))
+        }
+    },
+    {
         name: "get_prefix",
-        run(client, message) {
+        async run(client, message) {
+            const this_guild_settings = await client.function.database.get_this_guild_settings(client, message.guildId)
+            if (this_guild_settings?.custom_prefix) return this_guild_settings.custom_prefix
             return client.config.prefix
         }
     },
@@ -40,7 +72,7 @@ module.exports = [
             delete require.cache[require.resolve("../../config")]
             client.config = require("../../config")
             console.log(`\n[cluster ${client.cluster.id}] Reload config finish!`)
-            readdirSync("./src/commands").forEach(commandFile => {
+            readdirSync(__dirname + (process.platform === "win32" ? "\\..\\..\\src\\commands" : "/../../src/commands")).forEach(commandFile => {
                 delete require.cache[require.resolve("../commands/" + commandFile)]
                 require("../commands/" + commandFile).forEach(c => {
                     client.commands.delete(c.name)
@@ -51,12 +83,23 @@ module.exports = [
             delete require.cache[require.resolve("../slashcommands")]
             client.slashcommands_arr = []
             require("../slashcommands").forEach(slc => {
-                client.commands.delete(slc.data.name)
-                client.commands.set(slc.data.name, slc)
-                client.slashcommands_arr.push(slc.data.toJSON())
+                client.slashcommands.delete(slc.data.name)
+                client.slashcommands.set(slc.data.name, slc)
+                client.slashcommands_arr.push(slc.data)
                 console.log(`[cluster ${client.cluster.id}] Reload SlashCommands [${slc.data.name}] finish!`)
             })
-            client.guilds.cache.forEach(guild => { try { guild.commands.set(client.slashcommands_arr) } catch (e) { console.log(e) } })
+
+            const rest = new REST({ version: '9' }).setToken(client.token)
+            try {
+                if (client.config.loadSlashGlobal) {
+                    await rest.put(Routes.applicationCommands(client.user.id), { body: client.slashcommands_arr })
+                } else {
+                    client.config.guildTest.forEach(async id => {
+                        await rest.put(Routes.applicationGuildCommands(client.user.id, id), { body: client.slashcommands_arr })
+                    })
+                }
+            } catch (e) { console.log(e) }
+            
             delete require.cache[require.resolve("../events")]
             require("../events").forEach(event => {
                 client.removeAllListeners(event.name)
@@ -64,7 +107,7 @@ module.exports = [
                 console.log(`[cluster ${client.cluster.id}] Reload event [${event.name}] finish!`)
             })
             client.function = {}
-            readdirSync("./src/functions").forEach(functionFile => {
+            readdirSync(__dirname + (process.platform === "win32" ? "\\..\\..\\src\\functions" : "/../../src/functions")).forEach(functionFile => {
                 delete require.cache[require.resolve("../functions/" + functionFile)]
                 client.function[functionFile.replace(".js", "")] = {}
                 require("../functions/" + functionFile).forEach(func => {
@@ -87,9 +130,9 @@ module.exports = [
             const ctx = canvas.getContext('2d')
 
             const time = (new Date()).getHours()
-            const background = await loadImage("./data/welcome/bg.png")
-            const white_layer = await loadImage("./data/welcome/white_layer.png")
-            const dark_layer = await loadImage("./data/welcome/dark_layer.png")
+            const background = await loadImage(__dirname + (process.platform === "win32" ? "\\..\\..\\data\\welcome\\bg.png" : "/../../data/welcome/bg.png"))
+            const white_layer = await loadImage(__dirname + (process.platform === "win32" ? "\\..\\..\\data\\welcome\\white_layer.png" : "/../../data/welcome/white_layer.png"))
+            const dark_layer = await loadImage(__dirname + (process.platform === "win32" ? "\\..\\..\\data\\welcome\\dark_layer.png" : "/../../data/welcome/dark_layer.png"))
 
             const avatar = await loadImage(member.user.displayAvatarURL({ format: 'png' }) + "?size=512")
 
@@ -119,7 +162,7 @@ module.exports = [
                         name: type == "JOIN" ? "Member join!" : "Member left..",
                         icon_url: member.guild.iconURL({ format: 'png' }) + "?size=256"
                     },
-                    description: `<@!${member.user.id}>\n${type == "JOIN" ? "ยินดีต้อนรับสู่ nicenathapong discord งับ 💕" : "ได้ออกจากดิส nicenathapong discord ไปแล้วค่ะ ;w;"}`,
+                    description: `<@!${member.user.id}>\n${type == "JOIN" ? `ยินดีต้อนรับสู่ ${member.guild.name} งับ 💕` : `ได้ออกจากดิส ${member.guild.name} ไปแล้วค่ะ ;w;`}`,
                     image: {
                         url: `attachment://${attachment.name}`
                     },

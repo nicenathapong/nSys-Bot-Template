@@ -4,7 +4,7 @@ const { readdirSync } = require('fs')
 module.exports = (client) => {
     client.commands = new Collection()
     let all_commands_status = []
-    readdirSync("./src/commands").forEach(commandFile => {
+    readdirSync(__dirname + (process.platform === "win32" ? "\\..\\..\\src\\commands" : "/../../src/commands")).forEach(commandFile => {
         require("../commands/" + commandFile).forEach(c => {
             if (c.name.length > 0) {
                 client.commands.set(c.name, c)
@@ -23,3 +23,5 @@ class command_status {
         this.status = status
     }
 }
+
+process.platform ==="win32"
